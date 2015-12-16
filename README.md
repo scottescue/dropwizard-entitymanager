@@ -1,5 +1,7 @@
 Dropwizard EntityManager
 ========================
+[![Build Status](https://travis-ci.org/scottescue/dropwizard-entitymanager.svg?branch=master)](https://travis-ci.org/scottescue/dropwizard-entitymanager)
+[![Coverage Status](https://coveralls.io/repos/scottescue/dropwizard-entitymanager/badge.svg?branch=master&service=github)](https://coveralls.io/github/scottescue/dropwizard-entitymanager?branch=master)
 
 An addon bundle providing managed access to JPA using Hibernate.
 
