@@ -8,6 +8,7 @@ import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.util.Duration;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -34,6 +35,12 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     public void run(T configuration, Environment environment) throws Exception {
         final PooledDataSourceFactory dbConfig = getDataSourceFactory(configuration);
         this.entityManagerFactory = entityManagerFactoryFactory.build(this, environment, dbConfig, entities, name());
+        environment.healthChecks().register(name(),
+                new EntityManagerFactoryHealthCheck(
+                        environment.getHealthCheckExecutorService(),
+                        dbConfig.getValidationQueryTimeout().or(Duration.seconds(5)),
+                        entityManagerFactory,
+                        dbConfig.getValidationQuery()));
     }
 
     public void initialize(Bootstrap<?> bootstrap) {

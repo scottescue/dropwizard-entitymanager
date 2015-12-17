@@ -1,5 +1,6 @@
 package com.scottescue.dropwizard.entitymanager;
 
+import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
@@ -25,6 +26,7 @@ public class EntityManagerBundleTest {
     private final ImmutableList<Class<?>> entities = ImmutableList.<Class<?>>of(Person.class);
     private final EntityManagerFactoryFactory factory = mock(EntityManagerFactoryFactory.class);
     private final EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
+    private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final Configuration configuration = mock(Configuration.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
     private final Environment environment = mock(Environment.class);
@@ -40,6 +42,7 @@ public class EntityManagerBundleTest {
     public void setUp() throws Exception {
         when(environment.jersey()).thenReturn(jerseyEnvironment);
         when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
+        when(environment.healthChecks()).thenReturn(healthChecks);
 
         when(factory.build(eq(bundle),
                 any(Environment.class),
@@ -75,5 +78,47 @@ public class EntityManagerBundleTest {
         bundle.run(configuration, environment);
 
         assertThat(bundle.getEntityManagerFactory()).isEqualTo(entityManagerFactory);
+    }
+
+    @Test
+    public void registersASessionFactoryHealthCheck() throws Exception {
+        dbConfig.setValidationQuery("SELECT something");
+
+        bundle.run(configuration, environment);
+
+        final ArgumentCaptor<EntityManagerFactoryHealthCheck> captor =
+                ArgumentCaptor.forClass(EntityManagerFactoryHealthCheck.class);
+        verify(healthChecks).register(eq("hibernate-jpa"), captor.capture());
+
+        assertThat(captor.getValue().getEntityManagerFactory()).isEqualTo(entityManagerFactory);
+
+        assertThat(captor.getValue().getValidationQuery()).isEqualTo("SELECT something");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void registersACustomNameOfHealthCheckAndDBPoolMetrics() throws Exception {
+        final EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(entities, factory) {
+            @Override
+            public DataSourceFactory getDataSourceFactory(Configuration configuration) {
+                return dbConfig;
+            }
+
+            @Override
+            protected String name() {
+                return "custom-hibernate";
+            }
+        };
+        when(factory.build(eq(customBundle),
+                any(Environment.class),
+                any(DataSourceFactory.class),
+                anyList(),
+                eq("custom-hibernate"))).thenReturn(entityManagerFactory);
+
+        customBundle.run(configuration, environment);
+
+        final ArgumentCaptor<EntityManagerFactoryHealthCheck> captor =
+                ArgumentCaptor.forClass(EntityManagerFactoryHealthCheck.class);
+        verify(healthChecks).register(eq("custom-hibernate"), captor.capture());
     }
 }
