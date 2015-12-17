@@ -1,10 +1,14 @@
 sudo: false
 language: java
 jdk:
-  - oraclejdk7
-  - oraclejdk8
+- oraclejdk7
+- oraclejdk8
 after_success:
-  - bash .travis_after_success.sh
+- bash .travis_after_success.sh
 cache:
   directories:
-    - $HOME/.m2
+  - "$HOME/.m2"
+env:
+  global:
+    - secure: "CJuMS250fIV/J0USoqeT19n9ZFvq5Ac9k8ydjVGwJ22rF94VRZb+T+t2Ed/0A69syo3TJqSPQG0Nlq6RMfuWZDtEm5SW3wAj25MFncIzl/8O4DPSLVNRXVGnvXSFq5WkWLeyKK/u7puGOO2d1G8x5F8NL2MScxyfxv+ULJ1Nk9nctb6Ln8PVD/yMDW1bE1hrVMPnhkIe3npjA08k6x+VqW0kXsDXQ2KfCPrFd8QQwu/i3/Ve1q06bx0Yi/PmgrRQqd/AFFPRxfjCyPOqoAaofcmZEaxMpcre8KlgUtXGORTWleLGc8/wTvHxvhWPQfCAzsJpCoaRS6EKSJ4mRPCwgE44AmOgm6SHVXU8Oy02MJjFy04ffDBMuTGfQiV5sC7jGQO3Z4RzXcRF9Mu4piT8zmXdNotNJWRvMC5v5MKu+F/TMuqQm2u8HM/LtFDxZxVtPxzmAEnyWU2uTW7Q6E52LEwAn+AbI8EtqNdDvRD1l8c7cnUjBnS2BMNHewD1gm51k4P1wXCtfVgptzA34WdIQUZG6OdoatgUbXR0okSC70GTb7/meppygL0lxd5qPPU2ivpQYwLCZOGEhj/wtizsa2HywHuCgb9YOHpzuK9lt+IsfFIRwFV/0/0Kd6JsJsKFn44IkP3uuEFGqlIGRBgUiddFXso3jTEYzY4Wk42Q15Q="
+    - secure: "TuCKBVYa6R05AR1i7xmgMx04ztvTsAm9V9NwIxE6gYQwUpePu6a1IhAtbQJ7Hm6mg2uCp+Zu/QXXUxyube/0UBBTicWD/FQf0LU1f5rCoKgTW0zj3kapIHk0+LqJB2E4PhMSjv/IKXLg/QQuj8rO7h3GZN9gdTIF2Z1ij44ITgjlxlDRfMljIBCDi14/8atjAlfGQlusmifbRyEOwLuDaXnq49BkhAIEoIY2EGOM6AXn/FWGejW70BgoRxiAPuCjP+cN0uq5mAfjImOD536ZBlkndwuMzTI3Ocl6BmO0hlHbUVA9NgzO/FIv4D+3PUeSPyrs7Ps8qDZfuye4yXlXNaEMRjEdxCvR+5dgHxEO71s1sjbMT8h1KjWFVU1cXTBsyE5WlAGuSI5iEvK3xumqVR1pUDNj3eCkuein+9ndoSiR+6Ze5lfRkGsD6qiiJ7YKXTyUTKe0VA3iQRd4LP7U+CqW1A6fkEnRvE42uRbWb0c6w5MAQWSVKbLxv8LToMO9mppVVQxFcP+5vweYesAA4K1m/rnrOuAmtERWTctOnNO22FyFl3UoW+iilQrjOPXiq6cAaQDiE9maka2wTpQGPAWbSr0mDPDPwPgmA0xBgZ/tGLA9azcy1hAvJLqJnbSW5rm2QJa2V2kY8F3+5QLvzRX7Cdvl2IMOGNZdDFVEJpc="
