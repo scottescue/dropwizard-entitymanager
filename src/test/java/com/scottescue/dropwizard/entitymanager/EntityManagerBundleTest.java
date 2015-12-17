@@ -48,7 +48,7 @@ public class EntityManagerBundleTest {
                 any(Environment.class),
                 any(DataSourceFactory.class),
                 anyList(),
-                eq("hibernate-jpa"))).thenReturn(entityManagerFactory);
+                eq("hibernate-entitymanager"))).thenReturn(entityManagerFactory);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class EntityManagerBundleTest {
     public void buildsAnEntityManagerFactory() throws Exception {
         bundle.run(configuration, environment);
 
-        verify(factory).build(bundle, environment, dbConfig, entities, "hibernate-jpa");
+        verify(factory).build(bundle, environment, dbConfig, entities, "hibernate-entitymanager");
     }
 
     @Test
@@ -88,7 +88,7 @@ public class EntityManagerBundleTest {
 
         final ArgumentCaptor<EntityManagerFactoryHealthCheck> captor =
                 ArgumentCaptor.forClass(EntityManagerFactoryHealthCheck.class);
-        verify(healthChecks).register(eq("hibernate-jpa"), captor.capture());
+        verify(healthChecks).register(eq("hibernate-entitymanager"), captor.capture());
 
         assertThat(captor.getValue().getEntityManagerFactory()).isEqualTo(entityManagerFactory);
 

@@ -17,7 +17,7 @@ import java.util.TreeSet;
 
 public class EntityManagerFactoryFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityManagerFactoryFactory.class);
-    private static final String DEFAULT_NAME = "hibernate-jpa";
+    private static final String DEFAULT_NAME = "hibernate-entitymanager";
 
     public EntityManagerFactory build(EntityManagerBundle<?> bundle,
                                 Environment environment,

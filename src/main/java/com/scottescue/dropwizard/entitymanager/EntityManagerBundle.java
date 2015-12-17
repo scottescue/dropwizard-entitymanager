@@ -14,7 +14,7 @@ import javax.persistence.EntityManagerFactory;
 
 
 public abstract class EntityManagerBundle<T extends Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
-    public static final String DEFAULT_NAME = "hibernate-jpa";
+    public static final String DEFAULT_NAME = "hibernate-entitymanager";
 
     private EntityManagerFactory entityManagerFactory;
 

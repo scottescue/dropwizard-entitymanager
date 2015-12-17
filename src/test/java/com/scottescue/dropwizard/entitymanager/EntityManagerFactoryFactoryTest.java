@@ -79,7 +79,7 @@ public class EntityManagerFactoryFactoryTest {
         ArgumentCaptor<EntityManagerFactoryManager> manager = ArgumentCaptor.forClass(EntityManagerFactoryManager.class);
         verify(lifecycleEnvironment).manage(manager.capture());
         ManagedPooledDataSource dataSource = (ManagedPooledDataSource) manager.getValue().getDataSource();
-        assertThat(dataSource.getPool().getName()).isEqualTo("hibernate-jpa");
+        assertThat(dataSource.getPool().getName()).isEqualTo("hibernate-entitymanager");
     }
 
     @Test
