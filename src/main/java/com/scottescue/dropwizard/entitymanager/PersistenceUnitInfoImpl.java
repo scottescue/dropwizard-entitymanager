@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements PersistenceUnitInfo {
 
@@ -91,11 +90,7 @@ public class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Pe
 
     @Override
     public ClassLoader getClassLoader() {
-        return getFirstAvailable(
-                Thread.currentThread()::getContextClassLoader,
-                PersistenceUnitInfoImpl.class::getClassLoader,
-                ClassLoader::getSystemClassLoader
-        );
+        return Thread.currentThread().getContextClassLoader();
     }
 
     @Override
@@ -115,20 +110,5 @@ public class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Pe
         List<E> list = new ArrayList<>(set.size());
         list.addAll(set);
         return list;
-    }
-
-    @SafeVarargs
-    private final ClassLoader getFirstAvailable(Supplier<ClassLoader>... suppliers) {
-        for (Supplier<ClassLoader> supplier : suppliers) {
-            try {
-                ClassLoader classLoader = supplier.get();
-                if (classLoader != null) {
-                    return classLoader;
-                }
-            } catch(Throwable t) {
-                // Supplier could not access class loader; try the next supplier
-            }
-        }
-        throw new RuntimeException("Failed to find a class loader in the current environment");
     }
 }
