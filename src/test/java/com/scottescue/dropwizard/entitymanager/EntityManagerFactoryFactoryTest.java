@@ -2,7 +2,7 @@ package com.scottescue.dropwizard.entitymanager;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
-import com.scottescue.dropwizard.entitymanager.helper.Person;
+import com.scottescue.dropwizard.entitymanager.entity.Person;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedPooledDataSource;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;

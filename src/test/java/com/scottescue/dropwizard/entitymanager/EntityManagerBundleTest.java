@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.google.common.collect.ImmutableList;
-import com.scottescue.dropwizard.entitymanager.helper.Person;
+import com.scottescue.dropwizard.entitymanager.entity.Person;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.jersey.DropwizardResourceConfig;

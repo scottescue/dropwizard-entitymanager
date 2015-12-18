@@ -1,4 +1,4 @@
-package com.scottescue.dropwizard.entitymanager.helper;
+package com.scottescue.dropwizard.entitymanager.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.joda.time.DateTime;
