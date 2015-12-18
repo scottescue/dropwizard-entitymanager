@@ -72,4 +72,8 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
      */
     protected void configure(PersistenceUnitConfig configuration) {
     }
+
+    ImmutableList<Class<?>> getEntities() {
+        return entities;
+    }
 }
