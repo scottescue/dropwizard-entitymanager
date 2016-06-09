@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,11 +27,13 @@ public class EntityManagerBundleTest {
     private final ImmutableList<Class<?>> entities = ImmutableList.<Class<?>>of(Person.class);
     private final EntityManagerFactoryFactory factory = mock(EntityManagerFactoryFactory.class);
     private final EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
+    private final SharedEntityManagerFactory sharedEntityManagerFactory = mock(SharedEntityManagerFactory.class);
+    private final EntityManager sharedEntityManager = mock(EntityManager.class);
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final Configuration configuration = mock(Configuration.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
     private final Environment environment = mock(Environment.class);
-    private final EntityManagerBundle<Configuration> bundle = new EntityManagerBundle<Configuration>(entities, factory) {
+    private final EntityManagerBundle<Configuration> bundle = new EntityManagerBundle<Configuration>(entities, factory, sharedEntityManagerFactory) {
         @Override
         public DataSourceFactory getDataSourceFactory(Configuration configuration) {
             return dbConfig;
@@ -49,6 +52,9 @@ public class EntityManagerBundleTest {
                 any(DataSourceFactory.class),
                 anyList(),
                 eq("hibernate-entitymanager"))).thenReturn(entityManagerFactory);
+
+        when(sharedEntityManagerFactory.build(any(EntityManagerContext.class)))
+                .thenReturn(sharedEntityManager);
     }
 
     @Test
@@ -81,6 +87,29 @@ public class EntityManagerBundleTest {
     }
 
     @Test
+    public void buildsASharedEntityManagerFactory() throws Exception {
+        bundle.run(configuration, environment);
+
+        verify(sharedEntityManagerFactory).build(bundle.getEntityManagerContext());
+    }
+
+    @Test
+    public void hasASharedEntityManagerFactory() throws Exception {
+        bundle.run(configuration, environment);
+
+        assertThat(bundle.getSharedEntityManager()).isEqualTo(sharedEntityManager);
+    }
+
+    @Test
+    public void registersATransactionalListener() throws Exception {
+        bundle.run(configuration, environment);
+
+        final ArgumentCaptor<UnitOfWorkApplicationListener> captor =
+                ArgumentCaptor.forClass(UnitOfWorkApplicationListener.class);
+        verify(jerseyEnvironment).register(captor.capture());
+    }
+
+    @Test
     public void registersASessionFactoryHealthCheck() throws Exception {
         dbConfig.setValidationQuery("SELECT something");
 
@@ -98,7 +127,7 @@ public class EntityManagerBundleTest {
     @Test
     @SuppressWarnings("unchecked")
     public void registersACustomNameOfHealthCheckAndDBPoolMetrics() throws Exception {
-        final EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(entities, factory) {
+        final EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(entities, factory, sharedEntityManagerFactory) {
             @Override
             public DataSourceFactory getDataSourceFactory(Configuration configuration) {
                 return dbConfig;

@@ -10,6 +10,7 @@ import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.util.Duration;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 
@@ -17,24 +18,35 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     public static final String DEFAULT_NAME = "hibernate-entitymanager";
 
     private EntityManagerFactory entityManagerFactory;
+    private EntityManagerContext entityManagerContext;
+    private EntityManager sharedEntityManager;
 
     private final ImmutableList<Class<?>> entities;
     private final EntityManagerFactoryFactory entityManagerFactoryFactory;
+    private final SharedEntityManagerFactory sharedEntityManagerFactory;
 
     protected EntityManagerBundle(Class<?> entity, Class<?>... entities) {
         this(ImmutableList.<Class<?>>builder().add(entity).add(entities).build(),
-                new EntityManagerFactoryFactory());
+                new EntityManagerFactoryFactory(),
+                new SharedEntityManagerFactory());
     }
 
     protected EntityManagerBundle(ImmutableList<Class<?>> entities,
-                                  EntityManagerFactoryFactory entityManagerFactoryFactory) {
+                                  EntityManagerFactoryFactory entityManagerFactoryFactory,
+                                  SharedEntityManagerFactory sharedEntityManagerFactory) {
         this.entities = entities;
         this.entityManagerFactoryFactory = entityManagerFactoryFactory;
+        this.sharedEntityManagerFactory = sharedEntityManagerFactory;
     }
 
     public void run(T configuration, Environment environment) throws Exception {
         final PooledDataSourceFactory dbConfig = getDataSourceFactory(configuration);
+
         this.entityManagerFactory = entityManagerFactoryFactory.build(this, environment, dbConfig, entities, name());
+        this.entityManagerContext = new EntityManagerContext(entityManagerFactory);
+        this.sharedEntityManager = sharedEntityManagerFactory.build(entityManagerContext);
+
+        registerUnitOfWorkListerIfAbsent(environment).registerEntityManagerFactory(name(), entityManagerFactory);
         environment.healthChecks().register(name(),
                 new EntityManagerFactoryHealthCheck(
                         environment.getHealthCheckExecutorService(),
@@ -43,12 +55,27 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
                         dbConfig.getValidationQuery()));
     }
 
+    private UnitOfWorkApplicationListener registerUnitOfWorkListerIfAbsent(Environment environment) {
+        for (Object singleton : environment.jersey().getResourceConfig().getSingletons()) {
+            if (singleton instanceof UnitOfWorkApplicationListener) {
+                return (UnitOfWorkApplicationListener) singleton;
+            }
+        }
+        final UnitOfWorkApplicationListener listener = new UnitOfWorkApplicationListener();
+        environment.jersey().register(listener);
+        return listener;
+    }
+
     public void initialize(Bootstrap<?> bootstrap) {
         bootstrap.getObjectMapper().registerModule(createHibernate4Module());
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
         return entityManagerFactory;
+    }
+
+    public EntityManager getSharedEntityManager() {
+        return sharedEntityManager;
     }
 
     /**
@@ -75,5 +102,9 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
 
     ImmutableList<Class<?>> getEntities() {
         return entities;
+    }
+
+    EntityManagerContext getEntityManagerContext() {
+        return this.entityManagerContext;
     }
 }

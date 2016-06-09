@@ -14,27 +14,31 @@ import java.io.InputStream;
  */
 public abstract class ScanningEntityManagerBundle<T extends Configuration> extends EntityManagerBundle<T> {
     /**
-     * @param pckg string with package containing JPA entities (classes annotated with {@code @Entity}
+     * @param path string with package containing JPA entities (classes annotated with {@code @Entity}
      *             annotation) e. g. {@code com.my.application.directory.entities}
      */
-    protected ScanningEntityManagerBundle(String pckg) {
-        this(pckg, new EntityManagerFactoryFactory());
+    protected ScanningEntityManagerBundle(String path) {
+        this(path,
+                new EntityManagerFactoryFactory(),
+                new SharedEntityManagerFactory());
     }
 
-    protected ScanningEntityManagerBundle(String pckg, EntityManagerFactoryFactory entityManagerFactoryFactory) {
-        super(findEntityClassesFromDirectory(pckg), entityManagerFactoryFactory);
+    protected ScanningEntityManagerBundle(String path,
+                                          EntityManagerFactoryFactory entityManagerFactoryFactory,
+                                          SharedEntityManagerFactory sharedEntityManagerFactory) {
+        super(findEntityClassesFromDirectory(path), entityManagerFactoryFactory, sharedEntityManagerFactory);
     }
 
     /**
      * Method scanning given directory for classes containing JPA @Entity annotation
      *
-     * @param pckg string with package containing JPA entities (classes annotated with @Entity annotation)
+     * @param path string with package containing JPA entities (classes annotated with @Entity annotation)
      * @return ImmutableList with classes from given directory annotated with JPA @Entity annotation
      */
-    public static ImmutableList<Class<?>> findEntityClassesFromDirectory(String pckg) {
+    public static ImmutableList<Class<?>> findEntityClassesFromDirectory(String path) {
         @SuppressWarnings("unchecked")
         final AnnotationAcceptingListener asl = new AnnotationAcceptingListener(Entity.class);
-        final PackageNamesScanner scanner = new PackageNamesScanner(new String[]{pckg}, true);
+        final PackageNamesScanner scanner = new PackageNamesScanner(new String[]{path}, true);
 
         while (scanner.hasNext()) {
             final String next = scanner.next();
