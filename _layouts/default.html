@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+  {% include head.html %}
+
+  <body id="page-top" class="index">
+    <a href="https://github.com/scottescue/dropwizard-entitymanager">
+      <img style="position: absolute; top: 0; right: 0; border: 0; z-index: 10"
+           src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub">
+    </a>
+
+
+    {% include header.html %}
+
+    <div id="main-container" class="container">
+      <div class="row">
+        <div class="col-md-3">
+          <nav id="sidebar" class="hidden-print hidden-xs hidden-sm">
+            <ul id="sidebar-nav"
+                class="nav nav-pills nav-stacked">
+            </ul>
+          </nav>
+        </div>
+        <div class="col-md-9">
+          {{ content }}
+        </div>
+      </div>
+    </div>
+
+    {% include footer.html %}
+
+    {% include javascript.html %}
+
+  </body>
+
+</html>

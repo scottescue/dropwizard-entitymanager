@@ -1,0 +1,114 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+@charset "utf-8";
+
+@import "bootstrap/variables";
+@import "freelancer/variables";
+
+$nav-pills-active-link-hover-bg:  $theme-primary;
+@import "_bootstrap";
+@import "_freelancer";
+@import "pygments";
+
+
+
+pre {
+  background-color: #f5f5f5;
+}
+
+body {
+  position: relative;
+}
+
+
+
+.navbar-custom {
+  border-radius: 0px;
+  margin-bottom: 0px;
+}
+
+header {
+  .title {
+    background-color: $theme-primary;
+
+    .container {
+      padding-top: 0px;
+      padding-bottom: 0px;
+    }
+
+    .intro-text .name {
+      text-transform: none;
+    }
+  }
+
+  .description {
+    .container {
+      padding-top: 0px;
+      padding-bottom: 50px;
+    }
+  }
+}
+
+#sidebar-nav {
+  padding-top: 30px;
+
+  li {
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  &.affix-top {
+    position: static;
+    width: 228px;
+  }
+
+  &.affix {
+    position: fixed;
+    top: 0px;
+    width:228px;
+  }
+
+  .nav {
+    padding-left: 30px;
+    display: none;
+  }
+
+  .active {
+    > a {
+      color: $nav-pills-active-link-hover-color;
+      background-color: $nav-pills-active-link-hover-bg;
+    }
+
+    > ul {
+      display: block;
+    }
+  }
+}
+
+@media(min-width:$screen-sm-min) {
+  header .intro-text .name {
+    font-size: 3em;
+  }
+}
+
+@media(min-width:$screen-sm-min) and (max-width: $screen-md-min) {
+  .navbar-custom {
+    .navbar-brand {
+      font-size: 18px;
+    }
+  }
+}
+
+@media (max-width: $screen-sm-min) {
+  header .container {
+    padding-top: 0px;
+    padding-bottom: 50px;
+  }
+}
+
+@media (min-width: $screen-md-min) {
+  #main-container {
+    margin-left: 0;
+  }
+}

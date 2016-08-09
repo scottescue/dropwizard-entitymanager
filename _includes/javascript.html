@@ -1,0 +1,76 @@
+<!-- jQuery -->
+<script src="js/jquery.min.js"></script>
+<!-- jQuery Easing Plugin-->
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+<!-- Custom Theme JavaScript -->
+<script src="js/freelancer.js"></script>
+
+<script>
+
+    $(document).ready(function() {
+        var header = $('header');
+        var topNav = $('#top-nav');
+        var navigationContainer = $('#sidebar-nav');
+
+        function calculateAffixOffset() {
+            return (header.outerHeight() + topNav.outerHeight());
+        }
+
+        function buildNavigationLinks() {
+            navigationContainer.prop("level", 1);
+            var containerStack = new Array();
+            containerStack.push(navigationContainer);
+            var lastNavLink;
+
+            $("h1").each(function(i, el) {
+                var $el = $(el);
+                var id = $el.attr('id');
+
+                if (id) {
+                    var anchorName = '#' + id;
+                    var anchor = $('<a></a>').attr('href', anchorName).text($el.text());
+                    var navLink = $('<li class="page-scroll"></li>').append(anchor);
+                    var container = containerStack[containerStack.length - 1];
+                    var lastLevel = container.prop("level");
+                    var headerLevel = $el.prop("tagName").substr(1,1);
+
+                    if (lastLevel < headerLevel) {
+                        container = $('<ul class="nav"></ul>');
+                        container.prop("level", headerLevel);
+                        lastNavLink.append(container);
+                        containerStack.push(container);
+                    } else if (lastLevel > headerLevel) {
+                        while (lastLevel != headerLevel) {
+                            containerStack.pop();
+                            lastLevel--;
+                        }
+                        container = containerStack[containerStack.length - 1];
+                    }
+
+                    container.append(navLink);
+                    lastNavLink = navLink;
+                }
+            });
+        }
+
+        buildNavigationLinks();
+
+        $('body').scrollspy({
+            target: '#sidebar',
+            offset: 300
+        });
+
+        navigationContainer.affix({
+            offset: {
+                top: calculateAffixOffset()
+            }
+        });
+
+        $(window).on("resize", function(){
+            navigationContainer.data('bs.affix').options.offset = calculateAffixOffset();
+        })
+
+    });
+</script>
