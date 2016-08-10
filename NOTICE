@@ -1,0 +1,10 @@
+Dropwizard-EntityManager
+Copyright 2015-2016 Scott Escue.
+
+This product includes software developed by Scott Escue.
+
+This product contains software derived from Dropwizard
+(https://github.com/dropwizard/dropwizard), specifically the
+Dropwizard Hibernate module.  Dropwizard is developed by
+Coda Hale; Yammer, Inc.; and the Dropwizard Team, licensed
+under the Apache 2.0 license.
