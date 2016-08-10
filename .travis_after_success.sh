@@ -12,13 +12,13 @@ if [[ -n ${TRAVIS_TAG} ]]; then
     exit
 fi
 
-if [[ ${TRAVIS_BRANCH} != 'master' ]]; then
+if [ "$TRAVIS_BRANCH" != "master" ]; then
     echo "Skipping deployment for branch \"${TRAVIS_BRANCH}\""
     exit
 fi
 
-if [[ "$TRAVIS_PULL_REQUEST" = "true" ]]; then
-    echo "Skipping deployment for pull request"
+if [[ -n ${TRAVIS_PULL_REQUEST} && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+    echo "Skipping deployment for pull request \"${TRAVIS_PULL_REQUEST}\""
     exit
 fi
 
