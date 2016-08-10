@@ -33,7 +33,7 @@ class EntityManagerContext {
         this.factory = factory;
     }
 
-    EntityManager currentEntityManager() {
+    EntityManager currentEntityManager() throws PersistenceException {
         final EntityManager current = existingEntityManager( this.factory );
         if ( current == null ) {
             throw new PersistenceException( "No EntityManager currently bound to execution context" );

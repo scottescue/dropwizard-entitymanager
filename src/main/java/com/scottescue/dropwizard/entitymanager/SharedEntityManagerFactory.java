@@ -108,15 +108,10 @@ class SharedEntityManagerFactory {
             }
         }
 
-        private EntityManager currentEntityManager() {
-            // Retrieve the EntityManager bound to the current execution context
-            EntityManager currentEntityManager = entityManagerContext.currentEntityManager();
-
-            // If there is no EntityManager we cannot proceed
-            if (currentEntityManager == null) {
-                throw new IllegalStateException("No EntityManager available");
-            }
-            return currentEntityManager;
+        private EntityManager currentEntityManager()  {
+            // Retrieve the EntityManager bound to the current execution context;
+            // A PersistenceException is thrown if no EntityManager is bound
+            return entityManagerContext.currentEntityManager();
         }
 
         private boolean hasActiveTransaction(EntityManager target) {
