@@ -95,13 +95,6 @@ before returning. Otherwise, you’ll get a `LazyInitializationException` thrown
 produced by Jackson). 
 </div>
 
-##### Important
-
-    The EntityManager is closed before your resource method’s return value (e.g., the Person from the database), 
-    which means your resource method is responsible for initializing all lazily-loaded collections, etc., 
-    before returning. Otherwise, you’ll get a `LazyInitializationException` thrown in your template (or null values 
-    produced by Jackson).
-
 
 ## Application Managed PersistentContext
 There may be times when you need to have more control over the `PersistenceContext` or need to manage a new transaction.  
@@ -126,8 +119,6 @@ public void create(Person person) {
     }
 }
 ```
-
-### Just so you know
 
 # Prepended Comments
 
