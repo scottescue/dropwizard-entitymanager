@@ -17,8 +17,7 @@ if [ "$TRAVIS_BRANCH" != "master" ]; then
     exit
 fi
 
-echo "Pull Request: " ${TRAVIS_PULL_REQUEST}
-if [[ -n ${TRAVIS_PULL_REQUEST} -a "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+if [[ -n ${TRAVIS_PULL_REQUEST} && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
     echo "Skipping deployment for pull request \"${TRAVIS_PULL_REQUEST}\""
     exit
 fi
