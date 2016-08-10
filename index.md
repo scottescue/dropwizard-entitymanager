@@ -52,7 +52,7 @@ you to use in your classes.
 
 # Usage
 
-## <a name="container-managed-persistencecontext"></a>Container Managed PersistentContext
+## Container Managed PersistenceContext
 The shared `EntityManager` obtained from your `EntityManagerBundle` works with the `@UnitOfWork` annotation from the 
 [dropwizard-hibernate](http://www.dropwizard.io/0.9.2/docs/manual/hibernate.html) module.  The `@UnitOfWork` annotation 
 may be applied to resource methods to create a container managed `PersistenceContext`.  This gives you the ability to 
@@ -96,7 +96,7 @@ produced by Jackson).
 </div>
 
 
-## Application Managed PersistentContext
+## Application Managed PersistenceContext
 There may be times when you need to have more control over the `PersistenceContext` or need to manage a new transaction.  
 The `EntityManagerFactory` obtained from your `EntityManagerBundle` allows you to create and manage new 
 `EntityManager` instances.  Any `EntityManager` created from the factory will have a new `PersistenceContext` 
@@ -171,15 +171,27 @@ Now to include this project in your project, simply add the following dependency
 There is no need to also include a `dropwizard-hibernate` dependency.  The `@UnitOfWork` annotation is bundled within 
 this library for convenience.
 
+
 # Support
 
 Please file bug reports and feature requests in [GitHub issues](https://github.com/scottescue/dropwizard-entitymanager/issues).
 
 
-# License
+# License and Credits
 
-Copyright (c) 2016 Scott Escue 
+   Copyright 2015-2016 Scott Escue
 
-This library is licensed under the Apache License, Version 2.0.
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-See http://www.apache.org/licenses/LICENSE-2.0.html or the LICENSE file in this repository for the full license text.
+       http://www.apache.org/licenses/LICENSE-2.0
+
+<br />
+The usage and implementation of this module is heavily derived from the Dropwizard Hibernate module.  Much of the credit
+belongs to those who have contributed to Dropwizard Hibernate.  I've essentially adapted their work to create and expose 
+the EntityManager and EntityManagerFactory objects.
+
+Dropwizard is developed by
+Coda Hale; Yammer, Inc.; and the Dropwizard Team, licensed
+under the Apache 2.0 license.
