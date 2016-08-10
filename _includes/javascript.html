@@ -24,7 +24,7 @@
             containerStack.push(navigationContainer);
             var lastNavLink;
 
-            $("h1").each(function(i, el) {
+            $("h1, h2").each(function(i, el) {
                 var $el = $(el);
                 var id = $el.attr('id');
 
@@ -37,7 +37,7 @@
                     var headerLevel = $el.prop("tagName").substr(1,1);
 
                     if (lastLevel < headerLevel) {
-                        container = $('<ul class="nav"></ul>');
+                        container = $('<ul class="nav nav-pills"></ul>');
                         container.prop("level", headerLevel);
                         lastNavLink.append(container);
                         containerStack.push(container);
