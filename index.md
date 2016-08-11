@@ -2,11 +2,46 @@
 layout: default
 ---
 
+# Getting Started
+
+This project is not yet available on Maven Central, but will be soon. In the mean time, you'll need to add this 
+project's repository to your `pom.xml` before including it as a dependency:
+
+```xml
+<repositories>
+    <repository>
+        <id>dropwizard-entitymanager-mvn-repo</id>
+        <url>https://raw.github.com/scottescue/dropwizard-entitymanager/mvn-repo/</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+Now to include this project in your project, simply add the following dependency to your
+`pom.xml`:
+
+```xml
+<dependency>
+  <groupId>com.scottescue</groupId>
+  <artifactId>dropwizard-entitymanager</artifactId>
+  <version>0.9.0-1-SNAPSHOT</version>
+</dependency>
+```
+
+
+
+<div class="alert alert-info" role="alert"> 
+  <div><strong>Note</strong></div> There is no need to add a dropwizard-hibernate dependency.  The 
+  <strong>@UnitOfWork</strong> annotation is bundled within this library for convenience. 
+</div>
+
+
 # Configuration
 
-
-First, your [configuration class](http://www.dropwizard.io/0.9.1/docs/manual/core.html#man-core-configuration) 
-needs a `DataSourceFactory` instance:
+First, your configuration class needs a `DataSourceFactory` instance:
 
 ```java
 public class ExampleConfiguration extends Configuration {
@@ -45,19 +80,17 @@ public void run(ExampleConfiguration config, Environment environment) {
 }
 ```
 
-This will create a new [managed](http://www.dropwizard.io/0.9.1/docs/manual/core.html#man-core-managed) connection pool 
-to the database, a [health check](http://www.dropwizard.io/0.9.1/docs/manual/core.html#man-core-healthchecks) for 
-connectivity to the database, and a new `EntityManagerFactory` as well as a thread-safe `EntityManager` instance for 
-you to use in your classes.
+This will create a new managed connection pool to the database, a health check for connectivity to the database, and 
+a new `EntityManagerFactory` as well as a thread-safe `EntityManager` instance for you to use in your classes.
+
 
 # Usage
 
 ## Container Managed PersistenceContext
 The shared `EntityManager` obtained from your `EntityManagerBundle` works with the `@UnitOfWork` annotation from the 
-[dropwizard-hibernate](http://www.dropwizard.io/0.9.2/docs/manual/hibernate.html) module.  The `@UnitOfWork` annotation 
-may be applied to resource methods to create a container managed `PersistenceContext`.  This gives you the ability to 
-declaratively scope transaction boundaries.  The annotation _must_ be present on any resource method that either 
-directly or indirectly uses the shared `EntityManager`.
+Dropwizard Hibernate module.  The `@UnitOfWork` annotation may be applied to resource methods to create a container 
+managed `PersistenceContext`.  This gives you the ability to declaratively scope transaction boundaries.  The 
+annotation _must_ be present on any resource method that either directly or indirectly uses the shared `EntityManager`.
 
 ```java
 @POST
@@ -139,59 +172,21 @@ This will allow you to quickly determine the origin of any slow or misbehaving q
 autoCommentsEnabled attribute in the [Dropwizard Configuration Reference](http://www.dropwizard.io/0.9.0/docs/manual/configuration.html) 
 
 
-# Maven Artifacts
-
-This project is not yet available on Maven Central. You'll need to add this project's repository to your `pom.xml` before 
-including it as a dependency:
-
-```xml
-<repositories>
-    <repository>
-        <id>dropwizard-entitymanager-mvn-repo</id>
-        <url>https://raw.github.com/scottescue/dropwizard-entitymanager/mvn-repo/</url>
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-        </snapshots>
-    </repository>
-</repositories>
-```
-
-Now to include this project in your project, simply add the following dependency to your
-`pom.xml`:
-
-```xml
-<dependency>
-  <groupId>com.scottescue</groupId>
-  <artifactId>dropwizard-entitymanager</artifactId>
-  <version>0.9.0-1-SNAPSHOT</version>
-</dependency>
-```
-
-There is no need to also include a `dropwizard-hibernate` dependency.  The `@UnitOfWork` annotation is bundled within 
-this library for convenience.
-
-
 # Support
 
 Please file bug reports and feature requests in [GitHub issues](https://github.com/scottescue/dropwizard-entitymanager/issues).
 
+# Credits
 
-# License and Credits
+This module is heavily derived from Dropwizard Hibernate. Those who have contributed to Dropwizard Hibernate deserve 
+much of the credit for this project. I've essentially adapted their work to create and expose the `EntityManager` and 
+`EntityManagerFactory` objects.
 
-   Copyright 2015-2016 Scott Escue
+Dropwizard is developed by Coda Hale; Yammer, Inc.; and the Dropwizard Team, licensed under the Apache 2.0 license.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+# License
 
-       http://www.apache.org/licenses/LICENSE-2.0
+Copyright 2015-2016 Scott Escue
 
-<br />
-The usage and implementation of this module is heavily derived from the Dropwizard Hibernate module.  Much of the credit
-belongs to those who have contributed to Dropwizard Hibernate.  I've essentially adapted their work to create and expose 
-the EntityManager and EntityManagerFactory objects.
+This library is licensed under the Apache License, Version 2.0. See the project's [LICENSE](https://github.com/scottescue/dropwizard-entitymanager/blob/master/LICENSE) file for the full license text.
 
-Dropwizard is developed by
-Coda Hale; Yammer, Inc.; and the Dropwizard Team, licensed
-under the Apache 2.0 license.
