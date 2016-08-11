@@ -18,14 +18,9 @@ Support
 Please file bug reports and feature requests in [GitHub issues](https://github.com/scottescue/dropwizard-entitymanager/issues).
 
 
-License and Credits
+Credits
 -------
 
-Copyright (c) 2015-2016 Scott Escue 
-
-This library is licensed under the Apache License, Version 2.0.  See the [LICENSE](LICENSE) file in this repository for the full license text.
-
-<br />
 This module is heavily derived from Dropwizard Hibernate.  Those who have contributed to Dropwizard Hibernate deserve 
 much of the credit for this project.  I've essentially adapted their work to create and expose the `EntityManager` and 
 `EntityManagerFactory` objects.
@@ -33,3 +28,13 @@ much of the credit for this project.  I've essentially adapted their work to cre
 Dropwizard is developed by
 Coda Hale; Yammer, Inc.; and the Dropwizard Team, licensed
 under the Apache 2.0 license.
+
+
+License
+-------
+
+Copyright (c) 2015-2016 Scott Escue 
+
+This library is licensed under the Apache License, Version 2.0.  See the [LICENSE](LICENSE) file in this repository for the full license text.
+
+
