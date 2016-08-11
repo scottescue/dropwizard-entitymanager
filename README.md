@@ -6,9 +6,6 @@ Dropwizard EntityManager
 An add-on module providing managed access to a Hibernate JPA `EntityManagerFactory` and a shareable, thread-safe 
 `EntityManager` that works with Dropwizard Hibernate's `@UnitOfWork` annotation.
 
-This module is derived from Dropwizard's own [dropwizard-hibernate](http://www.dropwizard.io/0.9.2/docs/manual/hibernate.html)
-module.  The configuration and usage of this module should look very similar to that of Dropwizard Hibernate.
-
 
 Getting Started
 -------
