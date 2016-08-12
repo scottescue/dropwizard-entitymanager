@@ -22,4 +22,4 @@ if [[ -n ${TRAVIS_PULL_REQUEST} && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
     exit
 fi
 
-mvn -B deploy --settings maven_deploy_settings.xml -Dmaven.test.skip=true -Dsource.skip=true
+bash $DEPLOY_DIR/publish.sh

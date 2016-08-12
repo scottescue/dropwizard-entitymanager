@@ -1,3 +1,7 @@
+# GPG Signature
+/deploy/secring.gpg
+/deploy/pubring.gpg
+
 # Maven
 target/
 dependency-reduced-pom.xml
