@@ -4,38 +4,20 @@ layout: default
 
 # Getting Started
 
-This project is not yet available on Maven Central, but will be soon. In the mean time, you'll need to add this 
-project's repository to your `pom.xml` before including it as a dependency:
-
-```xml
-<repositories>
-    <repository>
-        <id>dropwizard-entitymanager-mvn-repo</id>
-        <url>https://raw.github.com/scottescue/dropwizard-entitymanager/mvn-repo/</url>
-        <snapshots>
-            <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
-        </snapshots>
-    </repository>
-</repositories>
-```
-
-Now to include this project in your project, simply add the following dependency to your
-`pom.xml`:
+If you're using Maven, simply add the `dropwizard-entitymanager` dependency to your POM:
 
 ```xml
 <dependency>
   <groupId>com.scottescue</groupId>
   <artifactId>dropwizard-entitymanager</artifactId>
-  <version>0.9.0-1-SNAPSHOT</version>
+  <version>0.9.0-1</version>
 </dependency>
 ```
 
-
-
 <div class="alert alert-info" role="alert"> 
-  <div><strong>Note</strong></div> There is no need to add a dropwizard-hibernate dependency.  The 
-  <strong>@UnitOfWork</strong> annotation is bundled within this library for convenience. 
+  <div><strong>Note</strong></div> Dropwizard Hibernate's <strong>@UnitOfWork</strong> annotation 
+  is bundled within this library for convenience.  There is no need to add a dropwizard-hibernate 
+  dependency. 
 </div>
 
 
