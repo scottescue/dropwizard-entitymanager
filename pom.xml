@@ -9,7 +9,7 @@
 
     <groupId>com.scottescue</groupId>
     <artifactId>dropwizard-entitymanager</artifactId>
-    <version>0.9.0-1</version>
+    <version>0.9.0-2-SNAPSHOT</version>
     <name>Dropwizard EntityManager</name>
     <description>JPA for Dropwizard using Hibernate</description>
     <url>http://scottescue.com/dropwizard-entitymanager</url>
@@ -52,7 +52,7 @@
         <connection>scm:git:git://github.com/scottescue/dropwizard-entitymanager.git</connection>
         <developerConnection>scm:git:git@github.com:scottescue/dropwizard-entitymanager.git</developerConnection>
         <url>https://github.com/scottescue/dropwizard-entitymanager</url>
-        <tag>v0.9.0-1</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <issueManagement>
