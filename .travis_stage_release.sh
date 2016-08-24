@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo
 echo "After-Succes Environment:"
@@ -8,13 +8,6 @@ echo "  Travis Branch: ${TRAVIS_BRANCH}"
 echo "  POM Version: ${POM_VERSION}"
 echo "  POM SCM Tag: ${POM_SCM_TAG}"
 echo
-
-if [[ "${TRAVIS_JDK_VERSION}" != "oraclejdk8" ]]; then
-    echo "Skipping after_success actions for JDK version \"${TRAVIS_JDK_VERSION}\""
-    exit
-fi
-
-mvn -B cobertura:cobertura coveralls:report
 
 
 # .travis_assert_ready_to_deploy.rb performs all validation to determine if build should be deployed
