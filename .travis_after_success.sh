@@ -7,19 +7,12 @@ fi
 
 mvn -B cobertura:cobertura coveralls:report
 
-if [[ -n ${TRAVIS_TAG} ]]; then
-    echo "Skipping deployment for tag \"${TRAVIS_TAG}\""
-    exit
-fi
 
-if [ "$TRAVIS_BRANCH" != "master" ]; then
-    echo "Skipping deployment for branch \"${TRAVIS_BRANCH}\""
-    exit
-fi
+# .travis_assert_ready_to_deploy.rb performs all validation to determine if build should be deployed
+`ruby .travis_assert_ready_to_deploy.rb`
 
-if [[ -n ${TRAVIS_PULL_REQUEST} && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
-    echo "Skipping deployment for pull request \"${TRAVIS_PULL_REQUEST}\""
-    exit
+# An exit status of 0 indicates all validations succeeded
+if [[ "${?}" == "0" ]]; then
+    printf "\nDeploying tagged version ${POM_VERSION}\n\n"
+    bash $DEPLOY_DIR/publish.sh
 fi
-
-bash $DEPLOY_DIR/publish.sh

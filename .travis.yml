@@ -1,12 +1,15 @@
 branches:
   only:
   - master
+  - /^release\/.*$/
 sudo: false
 language: java
 jdk:
 - oraclejdk7
 - oraclejdk8
 after_success:
+- export POM_VERSION=`ruby .travis_pom_value.rb /project/version`
+- export POM_SCM_TAG=`ruby .travis_pom_value.rb /project/scm/tag`
 - bash .travis_after_success.sh
 cache:
   directories:
