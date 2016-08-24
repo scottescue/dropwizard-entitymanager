@@ -11,16 +11,13 @@ jdk:
 cache:
   directories:
     - "$HOME/.m2"
+after_success:
+  - bash .travis_coveralls_report.sh
 before_deploy:
   - gem install nokogiri -v 1.6.8
   - export POM_VERSION=`ruby .travis_pom_value.rb /project/version`
   - export POM_SCM_TAG=`ruby .travis_pom_value.rb /project/scm/tag`
 deploy:
-  - provider: script
-    script: bash .travis_coveralls_report.sh
-    on:
-      all_branches: true
-      jdk: oraclejdk8
   - provider: script
     script: bash .travis_stage_release.sh
     skip_cleanup: true
