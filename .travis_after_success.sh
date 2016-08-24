@@ -1,5 +1,14 @@
 #!/bin/bash
 
+echo
+echo "After-Succes Environment:"
+echo "  JDK Version: ${TRAVIS_JDK_VERSION}"
+echo "  Travis Tag: ${TRAVIS_TAG}"
+echo "  Travis Branch: ${TRAVIS_BRANCH}"
+echo "  POM Version: ${POM_VERSION}"
+echo "  POM SCM Tag: ${POM_SCM_TAG}"
+echo
+
 if [[ "${TRAVIS_JDK_VERSION}" != "oraclejdk8" ]]; then
     echo "Skipping after_success actions for JDK version \"${TRAVIS_JDK_VERSION}\""
     exit
