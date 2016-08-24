@@ -7,7 +7,7 @@ cache:
   directories:
     - "$HOME/.m2"
 before_install:
-  - .travis_before_install.sh
+  - bash .travis_before_install.sh
 before_deploy:
   - gem install nokogiri -v 1.6.8
   - export POM_VERSION=`ruby .travis_pom_value.rb /project/version`
