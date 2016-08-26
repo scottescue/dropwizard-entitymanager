@@ -18,7 +18,6 @@ deploy:
     script: bash .travis_stage_release.sh
     skip_cleanup: true
     on:
-      tags: true
       jdk: oraclejdk8
 env:
   global:
