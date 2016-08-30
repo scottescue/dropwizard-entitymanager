@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-public class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements PersistenceUnitInfo {
+class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements PersistenceUnitInfo {
 
     PersistenceUnitInfoImpl(String persistenceUnitName, DataSource nonJtaDataSource) {
         super(persistenceUnitName, nonJtaDataSource);

@@ -64,101 +64,28 @@ public class UnitOfWorkApplicationListener implements ApplicationEventListener {
 
     private static class UnitOfWorkEventListener implements RequestEventListener {
         private final Map<Method, UnitOfWork> methodMap;
-        private final Map<String, EntityManagerFactory> entityManagerFactories;
-
-        private UnitOfWork unitOfWork;
-        private EntityManager entityManager;
-        private EntityManagerFactory entityManagerFactory;
+        private final UnitOfWorkAspect unitOfWorkAspect;
 
         public UnitOfWorkEventListener(Map<Method, UnitOfWork> methodMap,
                                        Map<String, EntityManagerFactory> entityManagerFactories) {
             this.methodMap = methodMap;
-            this.entityManagerFactories = entityManagerFactories;
+            this.unitOfWorkAspect = new UnitOfWorkAspect(entityManagerFactories);
         }
 
         @Override
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
-                this.unitOfWork = this.methodMap.get(event.getUriInfo()
+                UnitOfWork unitOfWork = methodMap.get(event.getUriInfo()
                         .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
-                if (unitOfWork != null) {
-                    entityManagerFactory = entityManagerFactories.get(unitOfWork.value());
-                    if (entityManagerFactory == null) {
-                        // If the user didn't specify the name of a entityManager factory,
-                        // and we have only one registered, we can assume that it's the right one.
-                        if (unitOfWork.value().equals(EntityManagerBundle.DEFAULT_NAME) && entityManagerFactories.size() == 1) {
-                            entityManagerFactory = entityManagerFactories.values().iterator().next();
-                        } else {
-                            throw new IllegalArgumentException("Unregistered EntityManager bundle: '" +
-                                    unitOfWork.value() + "'");
-                        }
-                    }
-                    this.entityManager = this.entityManagerFactory.createEntityManager();
-                    try {
-                        configureEntityManager();
-                        EntityManagerContext.bind(this.entityManager);
-                        beginTransaction();
-                    } catch (Throwable th) {
-                        this.entityManager.close();
-                        this.entityManager = null;
-                        EntityManagerContext.unbind(this.entityManagerFactory);
-                        throw th;
-                    }
-                }
+                unitOfWorkAspect.beforeStart(unitOfWork);
             } else if (event.getType() == RequestEvent.Type.RESP_FILTERS_START) {
-                if (this.entityManager != null) {
-                    try {
-                        commitTransaction();
-                    } catch (Exception e) {
-                        rollbackTransaction();
-                        throw new MappableException(e);
-                    } finally {
-                        this.entityManager.close();
-                        this.entityManager = null;
-                        EntityManagerContext.unbind(this.entityManagerFactory);
-                    }
+                try {
+                    unitOfWorkAspect.afterEnd();
+                } catch (Exception e) {
+                    throw new MappableException(e);
                 }
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-                if (this.entityManager != null) {
-                    try {
-                        rollbackTransaction();
-                    } finally {
-                        this.entityManager.close();
-                        this.entityManager = null;
-                        EntityManagerContext.unbind(this.entityManagerFactory);
-                    }
-                }
-            }
-        }
-
-        private void beginTransaction() {
-            if (this.unitOfWork.transactional()) {
-                this.entityManager.getTransaction().begin();
-            }
-        }
-
-        private void configureEntityManager() {
-            HibernateEntityManager em = (HibernateEntityManager) this.entityManager;
-            em.getSession().setDefaultReadOnly(this.unitOfWork.readOnly());
-            em.getSession().setCacheMode(this.unitOfWork.cacheMode());
-            em.getSession().setFlushMode(this.unitOfWork.flushMode());
-        }
-
-        private void rollbackTransaction() {
-            if (this.unitOfWork.transactional()) {
-                final EntityTransaction txn = this.entityManager.getTransaction();
-                if (txn != null && txn.isActive()) {
-                    txn.rollback();
-                }
-            }
-        }
-
-        private void commitTransaction() {
-            if (this.unitOfWork.transactional()) {
-                final EntityTransaction txn = this.entityManager.getTransaction();
-                if (txn != null && txn.isActive()) {
-                    txn.commit();
-                }
+                unitOfWorkAspect.onError();
             }
         }
     }
