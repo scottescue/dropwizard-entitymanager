@@ -9,6 +9,9 @@ import javax.sql.DataSource;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Provides a means to configure {@link javax.persistence.PersistenceUnit} options.
+ */
 public abstract class PersistenceUnitConfig {
     protected final String persistenceUnitName;
     protected final String persistenceProviderClassName = HibernatePersistenceProvider.class.getName();
