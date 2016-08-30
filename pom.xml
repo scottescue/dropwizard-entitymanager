@@ -296,7 +296,7 @@
                                     <goal>write-project-properties</goal>
                                 </goals>
                                 <configuration>
-                                    <outputFile>${pom.build.directory}/project.properties</outputFile>
+                                    <outputFile>${project.build.directory}/project.properties</outputFile>
                                 </configuration>
                             </execution>
                         </executions>
