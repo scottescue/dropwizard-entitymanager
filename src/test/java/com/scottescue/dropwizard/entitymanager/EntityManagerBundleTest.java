@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.google.common.collect.ImmutableList;
 import com.scottescue.dropwizard.entitymanager.entity.Person;
+import com.scottescue.dropwizard.entitymanager.entity.fake.entities.pckg.FakeEntity1;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
+import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.setup.Bootstrap;
@@ -55,6 +57,17 @@ public class EntityManagerBundleTest {
 
         when(sharedEntityManagerFactory.build(any(EntityManagerContext.class)))
                 .thenReturn(sharedEntityManager);
+    }
+
+    @Test
+    public void addsAllEntities() {
+        EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(Person.class, FakeEntity1.class) {
+            @Override
+            public PooledDataSourceFactory getDataSourceFactory(Configuration configuration) {
+                return dbConfig;
+            }
+        };
+        assertThat(customBundle.getEntities()).containsExactly(Person.class, FakeEntity1.class);
     }
 
     @Test
