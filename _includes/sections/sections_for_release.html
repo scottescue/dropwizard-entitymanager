@@ -1,0 +1,13 @@
+
+{% assign release_version = page.url | remove: '/' %}
+{% assign sorted_sections = site.sections %}
+{% for section in sorted_sections %}
+    {% unless section.versions %}
+        {% assign is_versions_empty = true %}
+    {% else %}
+        {% assign is_versions_empty = false %}
+    {% endunless %}
+    {% if is_versions_empty or section.versions contains release_version %}
+        {{ section.content | replace: "$[release_version]", release_version | markdownify }}
+    {% endif %}
+{% endfor %}
