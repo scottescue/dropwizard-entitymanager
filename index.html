@@ -1,5 +1,0 @@
----
-layout: default
----
-{% assign most_recent_page = site.pages | where: 'name', 'index.html' | sort: 'url' | last %}
-{{ most_recent_page.content }}
