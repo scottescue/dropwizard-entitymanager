@@ -6,7 +6,10 @@
 @import "bootstrap/variables";
 @import "freelancer/variables";
 
+$link-color:                      #333333;
+$link-hover-color:                #333333;
 $nav-pills-active-link-hover-bg:  $theme-primary;
+
 @import "_bootstrap";
 @import "_freelancer";
 @import "pygments";
@@ -107,8 +110,8 @@ header {
   }
 }
 
-@media (min-width: $screen-md-min) {
-  #main-container {
-    margin-left: 0;
-  }
-}
+// @media (min-width: $screen-md-min) {
+//   #main-container {
+//     margin-left: 0;
+//   }
+// }
