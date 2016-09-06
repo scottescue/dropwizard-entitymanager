@@ -6,8 +6,6 @@
 @import "bootstrap/variables";
 @import "freelancer/variables";
 
-$link-color:                      #333333;
-$link-hover-color:                #333333;
 $nav-pills-active-link-hover-bg:  $theme-primary;
 
 @import "_bootstrap";
@@ -55,6 +53,10 @@ header {
 
 #sidebar-nav {
   padding-top: 30px;
+
+  a, a:hover {
+    color: #333333;
+  }
 
   li {
     font-size: 16px;
