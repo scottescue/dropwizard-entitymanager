@@ -23,6 +23,3 @@ markdown: kramdown
 
 collections:
 - sections
-
-gems:
-- jekyll-redirect-from

@@ -1,5 +1,11 @@
 
-{% assign release_version = page.url | remove: '/' %}
+{% if page.url == '/' %}
+  {% assign release_page = site.pages | where: 'name', 'index.html' | sort: 'url' | last %}
+{% else %}
+  {% assign release_page = page %}
+{% endif %}
+
+{% assign release_version = release_page.url | remove: '/' %}
 {% assign sorted_sections = site.sections %}
 {% for section in sorted_sections %}
     {% unless section.versions %}

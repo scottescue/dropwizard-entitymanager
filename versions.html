@@ -3,7 +3,10 @@ layout: page
 ---
 <h1>Versions</h1>
 
-{% assign sorted_pages = site.html_pages | where: 'name', 'index.html' | sort: 'path' %}
+{% assign sorted_pages = site.html_pages
+      | where: 'name', 'index.html'
+      | where_exp: 'page', 'page.url != "/"' 
+      | sort: 'path' %}
 {% for version_page in sorted_pages %}
   <h2>{{ version_page.url | remove: '/' }}</h2>
   <div class="btn-group">
