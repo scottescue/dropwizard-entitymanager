@@ -8,23 +8,21 @@
 <script>
 
     $(document).ready(function() {
-
         function calculateAffixOffset() {
             return ($('header').outerHeight() + $('#top-nav').outerHeight());
         }
 
-
         var navigationContainer = $('#sidebar-nav');
+        if (navigationContainer.length > 0) {
+            navigationContainer.affix({
+                offset: {
+                    top: calculateAffixOffset()
+                }
+            });
 
-        navigationContainer.affix({
-            offset: {
-                top: calculateAffixOffset()
-            }
-        });
-
-        $(window).on("resize", function(){
-            navigationContainer.data('bs.affix').options.offset = calculateAffixOffset();
-        })
-
+            $(window).on("resize", function () {
+                navigationContainer.data('bs.affix').options.offset = calculateAffixOffset();
+            })
+        }
     });
 </script>

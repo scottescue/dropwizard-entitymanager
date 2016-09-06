@@ -4,6 +4,9 @@ priority: 1
 
 # Getting Started
 
+This user guide is for version $[release_version]. [Other versions]({{ site.baseurl }}/versions.html) are available.
+<hr />
+
 If you're using Maven, simply add the `dropwizard-entitymanager` dependency to your POM:
 
 ```xml
@@ -12,7 +15,7 @@ If you're using Maven, simply add the `dropwizard-entitymanager` dependency to y
   <artifactId>dropwizard-entitymanager</artifactId>
   <version>$[release_version]</version>
 </dependency>
-```
+``` 
 
 <div class="alert alert-info" role="alert"> 
   <div><strong>Note</strong></div> Dropwizard Hibernate's <strong>@UnitOfWork</strong> annotation 

@@ -1,21 +1,47 @@
 ---
 layout: page
 ---
-<h1>Versions</h1>
+<div id="version-container">
+    <h1>Versions</h1>
 
-{% assign sorted_pages = site.html_pages
-      | where: 'name', 'index.html'
-      | where_exp: 'page', 'page.url != "/"' 
-      | sort: 'path' %}
-{% for version_page in sorted_pages %}
-  <h2>{{ version_page.url | remove: '/' }}</h2>
-  <div class="btn-group">
-    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Go to... <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      <li><a href="{{ site.baseurl }}/{{ version_page.path }}">Documentation</a></li>
-      <li><a href="{{ site.baseurl }}/{{ version_page.path }}">Javadoc API</a></li>
-    </ul>
-  </div>
-{% endfor %}
+    {% assign sorted_pages = site.html_pages
+          | where: 'name', 'index.html'
+          | where_exp: 'page', 'page.url != "/"'
+          | sort: 'path'
+          | reverse %}
+    {% for version_page in sorted_pages %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h2 {% if version_page.deprecated == true %}class="deprecated"{% endif %}>{{ version_page.url | remove: '/' }}</h2>
+                {% unless version_page.deprecated %}
+                    <div>
+                        <a class="btn btn-primary"
+                           href="{{ site.baseurl }}/{{ version_page.path }}"
+                           role="button">
+                            <span class="fa fa-file-text"></span>User Manual
+                        </a>
+                        <a class="btn btn-success"
+                           href="{{ site.baseurl }}{{ version_page.url }}api/index.html"
+                           role="button">
+                            <span class="fa fa-list"></span>Javadoc
+                        </a>
+                    </div>
+                {% endunless %}
+            </div>
+
+            {% if version_page.summary %}
+                <div class="panel-body">
+                    <p>{{ version_page.summary }}</p>
+                </div>
+            {% endif %}
+
+            {% if version_page.release_notes %}
+                <ul class="list-group">
+                    {% for note in version_page.release_notes %}
+                        <li class="list-group-item"><span class="fa fa-arrow-right"></span> {{ note }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
