@@ -1,11 +1,7 @@
 ---
-priority: 1
 ---
 
 # Getting Started
-
-This user guide is for version $[release_version]. [Other versions]({{ site.baseurl }}/versions.html) are available.
-<hr />
 
 If you're using Maven, simply add the `dropwizard-entitymanager` dependency to your POM:
 

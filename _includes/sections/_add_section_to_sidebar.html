@@ -1,0 +1,28 @@
+{% assign header_tokens = section.content | split: '</h' %}
+{% assign header = header_tokens[0] %}
+{% comment %}
+    'header' value should be similar to: <h1 id="getting-started">Getting Started
+    The following block of logic parses out the header level, id, and header text
+{% endcomment %}
+
+{% assign level = header | split: ' ' | first | remove: '<h' | to_integer %}
+
+{% assign id_tokens = header | split: '"' %}
+{% assign id = id_tokens[1] %}
+
+{% assign header_text_tokens = header | split: '>' %}
+{% assign header_text = header_text_tokens[1] %}
+
+{% if last_level %}
+    </li>
+    {% if level > last_level %}
+        <ul class="nav nav-pills nav-stacked">
+    {% elsif level < last_level %}
+        </ul>
+    {% endif %}
+{% endif %}
+
+<li>
+    <a href="#{{ id }}">{{ header_text }}</a>
+
+{% assign last_level = level %}

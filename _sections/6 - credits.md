@@ -1,5 +1,4 @@
 ---
-priority: 7
 ---
 # Credits
 

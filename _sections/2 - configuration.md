@@ -1,5 +1,4 @@
 ---
-priority: 2
 ---
 # Configuration
 

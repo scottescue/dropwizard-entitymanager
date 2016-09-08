@@ -1,19 +1,11 @@
-
-{% if page.url == '/' %}
-  {% assign release_page = site.pages | where: 'name', 'index.html' | sort: 'url' | last %}
-{% else %}
-  {% assign release_page = page %}
-{% endif %}
-
-{% assign release_version = release_page.url | remove: '/' %}
-{% assign sorted_sections = site.sections %}
-{% for section in sorted_sections %}
+{% for section in site.sections %}
     {% unless section.versions %}
         {% assign is_versions_empty = true %}
     {% else %}
         {% assign is_versions_empty = false %}
     {% endunless %}
+
     {% if is_versions_empty or section.versions contains release_version %}
-        {{ section.content | replace: "$[release_version]", release_version | markdownify }}
+        {% include {{ include.closure }} %}
     {% endif %}
 {% endfor %}

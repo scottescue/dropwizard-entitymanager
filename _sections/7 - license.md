@@ -1,5 +1,4 @@
 ---
-priority: 8
 ---
 # License
 

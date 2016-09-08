@@ -1,5 +1,4 @@
 ---
-priority: 6
 ---
 # Support
 
