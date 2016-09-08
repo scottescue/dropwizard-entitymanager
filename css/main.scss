@@ -22,14 +22,6 @@ body {
   position: relative;
 }
 
-h1 {
-  margin-top: 50px;
-}
-
-h2 {
-  margin-top: 35px;
-}
-
 header {
   .title {
     background-color: $theme-primary;
@@ -53,7 +45,7 @@ header {
 }
 
 .alert {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .deprecated {
