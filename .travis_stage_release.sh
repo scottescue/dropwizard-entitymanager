@@ -68,7 +68,9 @@ else
 
     # This is not a tag build, ensure the POM has a snapshot version
     if [[ ! $POM_VERSION == *-SNAPSHOT ]]; then
-        abort "This is a snapshot build, but POM version '${POM_VERSION}' is not a snapshot"
+        # If the POM isn't versioned as a snapshot, just skip deployment; no need to fail the build
+        printf "Skipping deployment: This is a snapshot build, but POM version '${POM_VERSION}' is not a snapshot\n"
+        exit
     fi
 
     DEPLOY_TYPE="snapshot"
