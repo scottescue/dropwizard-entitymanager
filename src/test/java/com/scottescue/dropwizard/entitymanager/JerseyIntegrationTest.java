@@ -14,6 +14,7 @@ import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
 import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.logging.BootstrapLogging;
+import io.dropwizard.logging.LoggerConfiguration;
 import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -142,8 +143,7 @@ public class JerseyIntegrationTest extends JerseyTest {
         final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
         config.register(new UnitOfWorkApplicationListener("hr-db", entityManagerFactory));
         config.register(new PersonResource(new PersonService(sharedEntityManager)));
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validators.newValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
 
         config.register(new DataExceptionMapper());
 
@@ -152,8 +152,7 @@ public class JerseyIntegrationTest extends JerseyTest {
 
     @Override
     protected void configureClient(ClientConfig config) {
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validators.newValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
     }
 
     @Test
