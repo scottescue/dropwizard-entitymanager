@@ -50,7 +50,7 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
         environment.healthChecks().register(name(),
                 new EntityManagerFactoryHealthCheck(
                         environment.getHealthCheckExecutorService(),
-                        dbConfig.getValidationQueryTimeout().or(Duration.seconds(5)),
+                        dbConfig.getValidationQueryTimeout().orElse(Duration.seconds(5)),
                         entityManagerFactory,
                         dbConfig.getValidationQuery()));
     }

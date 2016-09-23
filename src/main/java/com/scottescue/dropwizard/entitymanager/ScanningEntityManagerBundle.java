@@ -52,9 +52,7 @@ public abstract class ScanningEntityManagerBundle<T extends Configuration> exten
         }
 
         final ImmutableList.Builder<Class<?>> builder = ImmutableList.builder();
-        for (Class<?> clazz : asl.getAnnotatedClasses()) {
-            builder.add(clazz);
-        }
+        asl.getAnnotatedClasses().forEach(builder::add);
 
         return builder.build();
     }

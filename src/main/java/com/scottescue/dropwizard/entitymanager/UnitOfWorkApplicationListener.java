@@ -8,11 +8,8 @@ import org.glassfish.jersey.server.monitoring.ApplicationEvent;
 import org.glassfish.jersey.server.monitoring.ApplicationEventListener;
 import org.glassfish.jersey.server.monitoring.RequestEvent;
 import org.glassfish.jersey.server.monitoring.RequestEventListener;
-import org.hibernate.jpa.HibernateEntityManager;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -94,14 +91,10 @@ public class UnitOfWorkApplicationListener implements ApplicationEventListener {
     public void onEvent(ApplicationEvent event) {
         if (event.getType() == ApplicationEvent.Type.INITIALIZATION_APP_FINISHED) {
             for (Resource resource : event.getResourceModel().getResources()) {
-                for (ResourceMethod method : resource.getAllMethods()) {
-                    registerUnitOfWorkAnnotations(method);
-                }
+                resource.getAllMethods().forEach(this::registerUnitOfWorkAnnotations);
 
                 for (Resource childResource : resource.getChildResources()) {
-                    for (ResourceMethod method : childResource.getAllMethods()) {
-                        registerUnitOfWorkAnnotations(method);
-                    }
+                    childResource.getAllMethods().forEach(this::registerUnitOfWorkAnnotations);
                 }
             }
         }

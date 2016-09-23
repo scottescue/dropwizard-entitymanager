@@ -4,11 +4,7 @@ import org.junit.Test;
 
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
-import javax.persistence.spi.ClassTransformer;
 import javax.sql.DataSource;
-
-import java.lang.instrument.IllegalClassFormatException;
-import java.security.ProtectionDomain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -86,12 +82,8 @@ public class PersistenceUnitConfigTest {
 
     @Test(expected = UnsupportedOperationException.class)
     public void testAddingTransformerIsUnsupported() {
-        persistenceUnitInfo.addTransformer(new ClassTransformer() {
-            @Override
-            public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-                return new byte[0];
-            }
-        });
+        persistenceUnitInfo.addTransformer(
+                (loader, className, classBeingRedefined, protectionDomain, classfileBuffer) -> new byte[0]);
     }
 
     @Test(expected = UnsupportedOperationException.class)

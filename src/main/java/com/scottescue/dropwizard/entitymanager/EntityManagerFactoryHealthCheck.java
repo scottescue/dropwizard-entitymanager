@@ -8,7 +8,6 @@ import io.dropwizard.util.Duration;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 public class EntityManagerFactoryHealthCheck extends HealthCheck {
@@ -41,27 +40,24 @@ public class EntityManagerFactoryHealthCheck extends HealthCheck {
 
     @Override
     protected HealthCheck.Result check() throws Exception {
-        return timeBoundHealthCheck.check(new Callable<Result>() {
-            @Override
-            public Result call() throws Exception {
-                final EntityManager entityManager = entityManagerFactory.createEntityManager();
+        return timeBoundHealthCheck.check(() -> {
+            final EntityManager entityManager = entityManagerFactory.createEntityManager();
+            try {
+                final EntityTransaction entityTransaction = entityManager.getTransaction();
+                entityTransaction.begin();
                 try {
-                    final EntityTransaction entityTransaction = entityManager.getTransaction();
-                    entityTransaction.begin();
-                    try {
-                        entityManager.createNativeQuery(validationQuery).getResultList();
-                        entityTransaction.commit();
-                    } catch (Exception e) {
-                        if (entityTransaction.isActive()) {
-                            entityTransaction.rollback();
-                        }
-                        throw e;
+                    entityManager.createNativeQuery(validationQuery).getResultList();
+                    entityTransaction.commit();
+                } catch (Exception e) {
+                    if (entityTransaction.isActive()) {
+                        entityTransaction.rollback();
                     }
-                } finally {
-                    entityManager.close();
+                    throw e;
                 }
-                return Result.healthy();
+            } finally {
+                entityManager.close();
             }
+            return Result.healthy();
         });
     }
 }
