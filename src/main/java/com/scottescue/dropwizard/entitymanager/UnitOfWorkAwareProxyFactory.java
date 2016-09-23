@@ -4,13 +4,11 @@ package com.scottescue.dropwizard.entitymanager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.hibernate.UnitOfWork;
-import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.Proxy;
 import javassist.util.proxy.ProxyFactory;
 
 import javax.persistence.EntityManagerFactory;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * A factory for creating proxies for components that use @UnitOfWork annotations
@@ -77,23 +75,20 @@ public class UnitOfWorkAwareProxyFactory {
             final Proxy proxy = (Proxy) (constructorParamTypes.length == 0 ?
                     factory.createClass().newInstance() :
                     factory.create(constructorParamTypes, constructorArguments));
-            proxy.setHandler(new MethodHandler() {
-                @Override
-                public Object invoke(Object self, Method overridden, Method proceed, Object[] args) throws Throwable {
-                    final UnitOfWork unitOfWork = overridden.getAnnotation(UnitOfWork.class);
-                    final UnitOfWorkAspect unitOfWorkAspect = new UnitOfWorkAspect(entityManagerFactories);
-                    try {
-                        unitOfWorkAspect.beforeStart(unitOfWork);
-                        Object result = proceed.invoke(self, args);
-                        unitOfWorkAspect.afterEnd();
-                        return result;
-                    } catch (InvocationTargetException e) {
-                        unitOfWorkAspect.onError();
-                        throw e.getCause();
-                    } catch (Exception e) {
-                        unitOfWorkAspect.onError();
-                        throw e;
-                    }
+            proxy.setHandler((self, overridden, proceed, args) -> {
+                final UnitOfWork unitOfWork = overridden.getAnnotation(UnitOfWork.class);
+                final UnitOfWorkAspect unitOfWorkAspect = new UnitOfWorkAspect(entityManagerFactories);
+                try {
+                    unitOfWorkAspect.beforeStart(unitOfWork);
+                    Object result = proceed.invoke(self, args);
+                    unitOfWorkAspect.afterEnd();
+                    return result;
+                } catch (InvocationTargetException e) {
+                    unitOfWorkAspect.onError();
+                    throw e.getCause();
+                } catch (Exception e) {
+                    unitOfWorkAspect.onError();
+                    throw e;
                 }
             });
             return (T) proxy;

@@ -16,8 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -84,13 +82,10 @@ public class UnitOfWorkApplicationListenerTest {
 
     @Test
     public void bindsAndUnbindsTheEntityManagerToTheContext() throws Exception {
-        doAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                assertThat(EntityManagerContext.hasBind(entityManagerFactory))
-                        .isTrue();
-                return null;
-            }
+        doAnswer(invocation -> {
+            assertThat(EntityManagerContext.hasBind(entityManagerFactory))
+                    .isTrue();
+            return null;
         }).when(transaction).begin();
 
         execute();

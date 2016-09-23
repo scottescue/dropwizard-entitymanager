@@ -44,7 +44,7 @@ public class SharedEntityManagerFactoryTest {
 
     @Test(expected = TransactionRequiredException.class)
     public void requiresTransactionForRefreshWithProperties() {
-        createProxy().refresh(new Object(), new HashMap<String, Object>());
+        createProxy().refresh(new Object(), new HashMap<>());
     }
 
     @Test(expected = TransactionRequiredException.class)
@@ -54,7 +54,7 @@ public class SharedEntityManagerFactoryTest {
 
     @Test(expected = TransactionRequiredException.class)
     public void requiresTransactionForRefreshWithPropertiesAndLockMode() {
-        createProxy().refresh(new Object(), LockModeType.NONE, new HashMap<String, Object>());
+        createProxy().refresh(new Object(), LockModeType.NONE, new HashMap<>());
     }
 
     @Test(expected = TransactionRequiredException.class)

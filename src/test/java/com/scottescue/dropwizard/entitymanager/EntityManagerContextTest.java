@@ -42,12 +42,9 @@ public class EntityManagerContextTest {
         final EntityManager em = createEntityManager();
         EntityManagerContext.bind(em);
 
-        Boolean hasEntityManager = invoke(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
-                Map<EntityManagerFactory, EntityManager> map = EntityManagerContext.entityManagerMap(false);
-                return map != null && map.get(em.getEntityManagerFactory()) == em;
-            }
+        Boolean hasEntityManager = invoke(() -> {
+            Map<EntityManagerFactory, EntityManager> map = EntityManagerContext.entityManagerMap(false);
+            return map != null && map.get(em.getEntityManagerFactory()) == em;
         });
 
         assertThat(hasEntityManager.booleanValue()).isFalse();
@@ -59,17 +56,14 @@ public class EntityManagerContextTest {
         Map<EntityManagerFactory, EntityManager> map = EntityManagerContext.entityManagerMap(true);
         map.put(em.getEntityManagerFactory(), em);
 
-        Throwable throwable = invoke(new Callable<Throwable>() {
-            @Override
-            public Throwable call() throws Exception {
-                try {
-                    EntityManagerContext entityManagerContext = new EntityManagerContext(em.getEntityManagerFactory());
-                    entityManagerContext.currentEntityManager();
-                } catch(PersistenceException e) {
-                    return e;
-                }
-                return null;
+        Throwable throwable = invoke((Callable<Throwable>) () -> {
+            try {
+                EntityManagerContext entityManagerContext = new EntityManagerContext(em.getEntityManagerFactory());
+                entityManagerContext.currentEntityManager();
+            } catch(PersistenceException e) {
+                return e;
             }
+            return null;
         });
 
         assertThat(throwable).isInstanceOf(PersistenceException.class);
