@@ -10,6 +10,7 @@ import java.io.OutputStream;
 
 class TemporaryClassLoader extends ClassLoader {
 
+    // This exists solely for unit testing - unit tests can mock ClassLoaderOperations to verify interactions
     interface ClassLoaderOperations {
         void resolveClass(Class<?> type);
 
@@ -22,7 +23,7 @@ class TemporaryClassLoader extends ClassLoader {
         void copyStreams(InputStream inputStream, OutputStream outputStream) throws IOException;
     }
 
-
+    // Classes from these packages should always be loaded using the parent class loader
     private static final String[] EXCLUDED_PACKAGES = new String[] {
             "java.",
             "javafx.",
@@ -48,6 +49,12 @@ class TemporaryClassLoader extends ClassLoader {
     private final ClassLoaderOperations operations;
 
 
+    /**
+     * Expected to be the standard constructor used outside of unit tests.  Creates the default implementation
+     * of ClassLoaderOperations.
+     *
+     * @param parent
+     */
     TemporaryClassLoader(ClassLoader parent) {
         super(parent);
         this.operations = new ClassLoaderOperations() {
@@ -78,6 +85,12 @@ class TemporaryClassLoader extends ClassLoader {
         };
     }
 
+    /**
+     * Expected to be used by unit tests that want to mock ClassLoaderOperations
+     *
+     * @param parent parent ClassLoader
+     * @param operations ClassLoaderOperations implementation
+     */
     TemporaryClassLoader(ClassLoader parent, ClassLoaderOperations operations) {
         super(parent);
         this.operations = operations;
@@ -86,6 +99,7 @@ class TemporaryClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+        // If the class does not belong to an excluded package, attempt to load it
         if (!isExcluded(className)) {
             synchronized (getClassLoadingLock(className)) {
                 Class<?> result = findLoadedClass(className);
@@ -98,6 +112,8 @@ class TemporaryClassLoader extends ClassLoader {
                 return result;
             }
         } else {
+            // The class belongs to an excluded package, so it should be loaded by the parent
+            // The default implementation of this call delegates to super#loadClass, which establishes its own lock
             return operations.loadClass(className, resolve);
         }
     }
