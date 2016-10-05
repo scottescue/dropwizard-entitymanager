@@ -1,5 +1,7 @@
 package com.scottescue.dropwizard.entitymanager;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -11,10 +13,8 @@ import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.errors.ErrorMessage;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
-import io.dropwizard.jersey.validation.Validators;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.logging.BootstrapLogging;
-import io.dropwizard.logging.LoggerConfiguration;
 import io.dropwizard.setup.Environment;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -23,6 +23,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.After;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -42,6 +43,9 @@ import static org.mockito.Mockito.when;
 public class JerseyIntegrationTest extends JerseyTest {
     static {
         BootstrapLogging.bootstrap();
+        // Prevent expected Hibernate SQL Exceptions from cluttering unit test logs
+        Logger logger = (Logger)LoggerFactory.getLogger(org.hibernate.engine.jdbc.spi.SqlExceptionHelper.class);
+        logger.setLevel(Level.OFF);
     }
 
     public static class PersonService {
@@ -83,7 +87,6 @@ public class JerseyIntegrationTest extends JerseyTest {
     }
 
     private EntityManagerFactory entityManagerFactory;
-    private EntityManager sharedEntityManager;
 
     @Override
     @After
@@ -105,6 +108,7 @@ public class JerseyIntegrationTest extends JerseyTest {
         final EntityManagerBundle<?> bundle = mock(EntityManagerBundle.class);
         final Environment environment = mock(Environment.class);
         final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
+        when(bundle.name()).thenReturn(getClass().getSimpleName() + "-bundle");
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
         when(environment.metrics()).thenReturn(metricRegistry);
 
@@ -138,7 +142,7 @@ public class JerseyIntegrationTest extends JerseyTest {
 
         final SharedEntityManagerFactory sharedEntityManagerFactory = new SharedEntityManagerFactory();
         final EntityManagerContext context = new EntityManagerContext(this.entityManagerFactory);
-        sharedEntityManager = sharedEntityManagerFactory.build(context);
+        final EntityManager sharedEntityManager = sharedEntityManagerFactory.build(context);
 
         final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
         config.register(new UnitOfWorkApplicationListener("hr-db", entityManagerFactory));
@@ -206,16 +210,16 @@ public class JerseyIntegrationTest extends JerseyTest {
 
     @Test
     public void testSqlExceptionIsHandled() throws Exception {
-        final Person person = new Person();
-        person.setName("Jeff");
-        person.setEmail("jeff.hammersmith@targetprocessinc.com");
-        person.setBirthday(new DateTime(1984, 2, 11, 0, 0, DateTimeZone.UTC));
+            final Person person = new Person();
+            person.setName("Jeff");
+            person.setEmail("jeff.hammersmith@targetprocessinc.com");
+            person.setBirthday(new DateTime(1984, 2, 11, 0, 0, DateTimeZone.UTC));
 
-        final Response response = target("/people/Jeff").request().
-                put(Entity.entity(person, MediaType.APPLICATION_JSON));
+            final Response response = target("/people/Jeff").request().
+                    put(Entity.entity(person, MediaType.APPLICATION_JSON));
 
-        assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-        assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-        assertThat(response.readEntity(ErrorMessage.class).getMessage()).isEqualTo("Wrong email");
+            assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+            assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+            assertThat(response.readEntity(ErrorMessage.class).getMessage()).isEqualTo("Wrong email");
     }
 }

@@ -1,6 +1,6 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.google.common.collect.ImmutableList;
 import io.dropwizard.Configuration;
 import io.dropwizard.ConfiguredBundle;
@@ -67,7 +67,7 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     }
 
     public void initialize(Bootstrap<?> bootstrap) {
-        bootstrap.getObjectMapper().registerModule(createHibernate4Module());
+        bootstrap.getObjectMapper().registerModule(createHibernate5Module());
     }
 
     public EntityManagerFactory getEntityManagerFactory() {
@@ -79,10 +79,10 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     }
 
     /**
-     * Override to configure the {@link Hibernate4Module}.
+     * Override to configure the {@link Hibernate5Module}.
      */
-    protected Hibernate4Module createHibernate4Module() {
-        return new Hibernate4Module();
+    protected Hibernate5Module createHibernate5Module() {
+        return new Hibernate5Module();
     }
 
     /**

@@ -9,7 +9,6 @@ import javax.persistence.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.never;
 
 public class EntityManagerFactoryHealthCheckTest {
     private final EntityManagerFactory factory = mock(EntityManagerFactory.class);
