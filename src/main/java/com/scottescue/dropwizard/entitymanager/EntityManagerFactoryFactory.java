@@ -83,11 +83,11 @@ public class EntityManagerFactoryFactory {
     protected void configure(PersistenceUnitConfig configuration) {
     }
 
-    private void addAnnotatedClasses(PersistenceUnitConfig configuration,
+    private void addAnnotatedClasses(PersistenceUnitInfoImpl persistenceUnitInfo,
                                      Iterable<Class<?>> entities) {
         final SortedSet<String> entityClasses = new TreeSet<>();
         for (Class<?> klass : entities) {
-            configuration.addManagedClassNames(klass.getName());
+            persistenceUnitInfo.addManagedClassNames(klass.getName());
             entityClasses.add(klass.getCanonicalName());
         }
         LOGGER.info("Entity classes: {}", entityClasses);
