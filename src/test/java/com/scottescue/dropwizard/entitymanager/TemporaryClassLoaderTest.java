@@ -1,126 +1,104 @@
 package com.scottescue.dropwizard.entitymanager;
 
 import com.scottescue.dropwizard.entitymanager.entity.Person;
-import org.junit.Before;
+import com.scottescue.dropwizard.entitymanager.entity.PersonType;
+import com.scottescue.dropwizard.entitymanager.entity.Personable;
 import org.junit.Test;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 
 public class TemporaryClassLoaderTest {
 
-    private final TemporaryClassLoader.ClassLoaderOperations operations =
-            mock(TemporaryClassLoader.ClassLoaderOperations.class);
+    private final ClassLoader parentClassLoader = Thread.currentThread().getContextClassLoader();
+    private final TemporaryClassLoader temporaryClassLoader = spy(new TemporaryClassLoader(parentClassLoader));
 
-    private final TemporaryClassLoader temporaryClassLoader = new TemporaryClassLoader(
-            Thread.currentThread().getContextClassLoader(),
-            operations);
-
-    @Before
-    public void setup() {
-        when(operations.defineClass(anyString(), any())).thenAnswer(invocation -> {
-            final String name = invocation.getArgument(0);
-            return Thread.currentThread().getContextClassLoader().loadClass(name);
-        });
-
-        when(operations.getResourceAsStream(anyString())).thenAnswer(invocation -> {
-            final String name = invocation.getArgument(0);
-            return Thread.currentThread().getContextClassLoader().getResourceAsStream(name);
-        });
+    @Test
+    public void unprotectedClassIsLoadedByTemporary() throws Exception {
+        Class type = temporaryClassLoader.loadClass(Person.class.getName());
+        assertThat(type.getClassLoader()).isSameAs(temporaryClassLoader);
     }
 
     @Test
-    public void allowedClassIsNotResolveWhenNotAsked() throws Exception {
-        temporaryClassLoader.loadClass(Person.class.getName(), false);
-
-        verify(operations, never()).resolveClass(any());
+    public void protectedClassLoadedByParent() throws Exception {
+        Class type = temporaryClassLoader.loadClass(Object.class.getName());
+        assertClassLoadedByParent(type);
     }
 
     @Test
-    public void allowedClassIsResolvedWhenAsked() throws Exception {
-        temporaryClassLoader.loadClass(Person.class.getName(), true);
-
-        verify(operations).resolveClass(any());
+    public void annotationClassLoadedByParent() throws Exception {
+        Class type = temporaryClassLoader.loadClass(Personable.class.getName());
+        assertClassLoadedByParent(type);
     }
 
     @Test
-    public void allowedClassIsNotLoadedByParent() throws Exception {
-        temporaryClassLoader.loadClass(Person.class.getName());
-
-        verify(operations, never()).loadClass(eq(Person.class.getName()), anyBoolean());
+    public void enumClassLoadedByParent() throws Exception {
+        Class type = temporaryClassLoader.loadClass(PersonType.class.getName());
+        assertClassLoadedByParent(type);
     }
 
     @Test
-    public void excludedClassLoadedByParent() throws Exception {
-        temporaryClassLoader.loadClass("java.lang.Object");
+    public void errorReadingResourceDefersToParent() throws Exception {
+        doThrow(IOException.class).when(temporaryClassLoader).readBytes(any());
 
-        verify(operations).loadClass(eq("java.lang.Object"), anyBoolean());
+        Class type = temporaryClassLoader.loadClass(Person.class.getName());
+        assertClassLoadedByParent(type);
     }
 
     @Test
-    public void classIsCorrectlyLoadedFromRealInstance() throws Exception {
-        TemporaryClassLoader temporaryClassLoader = new TemporaryClassLoader(Thread.currentThread().getContextClassLoader());
-        Class<?> type = temporaryClassLoader.loadClass(Person.class.getName());
+    public void classIsNotLoadedTwice() throws Exception {
+        Class first = temporaryClassLoader.loadClass(Person.class.getName());
+        Class second = temporaryClassLoader.loadClass(Person.class.getName());
 
-        assertThat(type).isNotNull();
-        assertThat(type.getName()).isEqualTo(Person.class.getName());
+        assertThat(second).isSameAs(first);
     }
 
     @Test
-    public void classIsCorrectlyLoadedAndResolvedFromRealInstance() throws Exception {
-        TemporaryClassLoader temporaryClassLoader = new TemporaryClassLoader(Thread.currentThread().getContextClassLoader());
-        Class<?> type = temporaryClassLoader.loadClass(Person.class.getName(), true);
-
-        assertThat(type).isNotNull();
-        assertThat(type.getName()).isEqualTo(Person.class.getName());
+    public void classIsLinkedWhenRequested() throws Exception {
+        Class type = temporaryClassLoader.loadClass(Person.class.getName(), true);
+        verify(temporaryClassLoader).resolve(type);
     }
 
     @Test
-    public void classesAreCorrectlyExcluded() {
+    public void classLoadedByParentDiffersFromTempClass() throws Exception {
+        Class parentType = parentClassLoader.loadClass(Person.class.getName());
+        Class tempType = temporaryClassLoader.loadClass(Person.class.getName());
+
+        assertThat(tempType).isNotEqualTo(parentType);
+    }
+
+    @Test
+    public void classesAreCorrectlyIdentifiedAsProtected() {
         String[] expectedExclusions = new String[] {
                 "java.lang.Object",
-                "javafx.application.Application",
                 "javax.crypto.Cipher",
-                "oracle.jrockit.jfr.DCmd",
-                "org.omg.CosNaming.Binding",
-                "org.w3c.dom.Entity",
-                "org.xml.sax.Parser",
+                "jdk.Exported",
                 "sun.security.pkcs11.KeyCache",
-                "javassist.ClassPool",
-                "net.bytebuddy.ByteBuddy",
-                "org.apache.commons.logging.Log",
-                "org.apache.log4j.Logger",
-                "org.eclipse.jetty.http.HttpURI",
-                "org.glassfish.jersey.server.ApplicationHandler",
-                "org.slf4j.Logger"
+                "oracle.jrockit.jfr.DCmd"
         };
         for (String className : expectedExclusions) {
-            assertThat(temporaryClassLoader.isExcluded(className))
-                    .describedAs("Expected \"%s\" to be an excluded class", className)
+            assertThat(temporaryClassLoader.isProtected(className))
+                    .describedAs("Expected \"%s\" to be a protected class", className)
                     .isTrue();
         }
     }
 
     @Test
     public void nullStreamCausesClassNotFound() throws Exception {
-        when(operations.getResourceAsStream(anyString())).thenReturn(null);
-
-        assertThatThrownBy(() -> temporaryClassLoader.loadClass(Person.class.getName(), false))
+        assertThatThrownBy(() -> temporaryClassLoader.loadClass("com.i.dont.Exist"))
                 .isInstanceOf(ClassNotFoundException.class)
-                .hasMessageContaining(Person.class.getName());
+                .hasMessageContaining("com.i.dont.Exist");
     }
 
-    @Test
-    public void errorReadingResourceCausesClassNotFound() throws Exception {
-        doThrow(IOException.class).when(operations).copyStreams(any(), any());
-
-        assertThatThrownBy(() -> temporaryClassLoader.loadClass(Person.class.getName()))
-                .isInstanceOf(ClassNotFoundException.class)
-                .hasMessageContaining(Person.class.getName());
+    private void assertClassLoadedByParent(Class<?> type) {
+        // getClassLoader may return null if the class was loaded by the bootstrap classloader
+        assertThat(type.getClassLoader()).isIn(null, parentClassLoader);
     }
-
 }

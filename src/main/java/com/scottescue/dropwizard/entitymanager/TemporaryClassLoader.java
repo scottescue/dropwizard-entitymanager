@@ -1,156 +1,99 @@
 package com.scottescue.dropwizard.entitymanager;
 
 import com.google.common.annotations.VisibleForTesting;
+import javassist.ByteArrayClassPath;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.NotFoundException;
 import org.hibernate.engine.jdbc.StreamUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
-class TemporaryClassLoader extends ClassLoader {
+/**
+ * ClassLoader implementation that allows classes to be temporarily loaded and then thrown away.
+ */
+public class TemporaryClassLoader extends ClassLoader {
+    private static final String[] PROTECTED_PACKAGES =
+            new String[] {"java", "javax", "jdk", "sun", "oracle", "ibm", "IBM"};
 
-    // This exists solely for unit testing - unit tests can mock ClassLoaderOperations to verify interactions
-    interface ClassLoaderOperations {
-        void resolveClass(Class<?> type);
+    private ClassPool classPool = new ClassPool();
 
-        Class<?> defineClass(String name, byte[] bytes) throws ClassFormatError;
-
-        Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException;
-
-        InputStream getResourceAsStream(String name);
-
-        void copyStreams(InputStream inputStream, OutputStream outputStream) throws IOException;
-    }
-
-    // Classes from these packages should always be loaded using the parent class loader
-    private static final String[] EXCLUDED_PACKAGES = new String[] {
-            "java.",
-            "javafx.",
-            "javax.",
-            "sun.",
-            "oracle.",
-            "org.omg.",
-            "org.w3c.",
-            "org.xml.",
-            "javassist.",
-            "net.bytebuddy.",
-            "org.apache.",
-            "org.eclipse.jetty.",
-            "org.glassfish.",
-            "org.slf4j."
-    };
-
-    static {
-        ClassLoader.registerAsParallelCapable();
-    }
-
-
-    private final ClassLoaderOperations operations;
-
-
-    /**
-     * Expected to be the standard constructor used outside of unit tests.  Creates the default implementation
-     * of ClassLoaderOperations.
-     *
-     * @param parent
-     */
-    TemporaryClassLoader(ClassLoader parent) {
+    public TemporaryClassLoader(ClassLoader parent) {
         super(parent);
-        this.operations = new ClassLoaderOperations() {
-            @Override
-            public void resolveClass(Class<?> type) {
-                TemporaryClassLoader.this.resolveClass(type);
-            }
-
-            @Override
-            public Class<?> defineClass(String name, byte[] bytes) throws ClassFormatError {
-                return TemporaryClassLoader.this.defineClass(name, bytes, 0, bytes.length);
-            }
-
-            @Override
-            public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                return TemporaryClassLoader.super.loadClass(name, resolve);
-            }
-
-            @Override
-            public InputStream getResourceAsStream(String name) {
-                return TemporaryClassLoader.this.getResourceAsStream(name);
-            }
-
-            @Override
-            public void copyStreams(InputStream inputStream, OutputStream outputStream) throws IOException {
-                StreamUtils.copy(inputStream, outputStream, 4096);
-            }
-        };
     }
-
-    /**
-     * Expected to be used by unit tests that want to mock ClassLoaderOperations
-     *
-     * @param parent parent ClassLoader
-     * @param operations ClassLoaderOperations implementation
-     */
-    TemporaryClassLoader(ClassLoader parent, ClassLoaderOperations operations) {
-        super(parent);
-        this.operations = operations;
-    }
-
 
     @Override
-    protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
-        // If the class does not belong to an excluded package, attempt to load it
-        if (!isExcluded(className)) {
-            synchronized (getClassLoadingLock(className)) {
-                Class<?> result = findLoadedClass(className);
-                if (result == null) {
-                    result = findAndDefineClass(className);
-                }
-                if (resolve) {
-                    operations.resolveClass(result);
-                }
-                return result;
+    public Class loadClass(String name) throws ClassNotFoundException {
+        return loadClass(name, false);
+    }
+
+    @Override
+    protected Class loadClass(String name, boolean resolve)
+            throws ClassNotFoundException {
+        // Check if this classloader has already loaded the class
+        Class type = findLoadedClass(name);
+        if (type != null) {
+            return type;
+        }
+
+        // Defer to the parent if this is a protected class
+        if (isProtected(name)) {
+            return super.loadClass(name, resolve);
+        }
+
+        String resourceName = name.replace('.', '/') + ".class";
+        CtClass ctClass = null;
+        try (InputStream resource = getResourceAsStream(resourceName)){
+            if (resource == null) {
+                throw new ClassNotFoundException(name);
             }
-        } else {
-            // The class belongs to an excluded package, so it should be loaded by the parent
-            // The default implementation of this call delegates to super#loadClass, which establishes its own lock
-            return operations.loadClass(className, resolve);
+
+            byte[] classBytes = readBytes(resource);
+            classPool.insertClassPath(new ByteArrayClassPath(name, classBytes));
+            ctClass = classPool.get(name);
+
+            // Annotations and enums should be loaded by the parent classloader,
+            // to avoid potential classloader issues with the JVM
+            if (ctClass.isAnnotation() || ctClass.isEnum()) {
+                return super.loadClass(name, resolve);
+            }
+
+            type = defineClass(name, classBytes, 0, classBytes.length);
+            if (resolve) {
+                resolve(type);
+            }
+            return type;
+        } catch (IOException | NotFoundException | SecurityException e ) {
+            // Defer to the parent
+            return super.loadClass(name, resolve);
+        } finally {
+            if (ctClass != null) {
+                ctClass.detach();
+            }
         }
     }
 
     @VisibleForTesting
-    boolean isExcluded(String className) {
-        for (String packageName : EXCLUDED_PACKAGES) {
-            if (className.startsWith(packageName)) {
+    boolean isProtected(String name) {
+        for (String protectedPackage : PROTECTED_PACKAGES) {
+            if (name.startsWith(protectedPackage.concat("."))) {
                 return true;
             }
         }
         return false;
     }
 
-    private Class<?> findAndDefineClass(String className) throws ClassNotFoundException {
-        byte[] bytes = loadBytesForClass(className);
-        if (bytes != null) {
-            return operations.defineClass(className, bytes);
-        }
-        throw new ClassNotFoundException("Cannot load class " + className);
+    @VisibleForTesting
+    byte[] readBytes(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        StreamUtils.copy(in, out, 4096);
+        return out.toByteArray();
     }
 
-    private byte[] loadBytesForClass(String className) throws ClassNotFoundException {
-        String internalName = className.replace('.', '/') + ".class";
-        try (
-                InputStream inputStream = operations.getResourceAsStream(internalName);
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
-        ){
-            if (inputStream == null) {
-                return null;
-            }
-            // Load the raw bytes.
-            operations.copyStreams(inputStream, outputStream);
-            return outputStream.toByteArray();
-        } catch (IOException ex) {
-            throw new ClassNotFoundException("Cannot load resource for class [" + className + "]", ex);
-        }
+    @VisibleForTesting
+    void resolve(Class<?> type) {
+        resolveClass(type);
     }
-
 }
