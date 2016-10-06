@@ -1,5 +1,8 @@
 package com.scottescue.dropwizard.entitymanager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.persistence.spi.ClassTransformer;
@@ -13,6 +16,8 @@ import java.util.Properties;
 import java.util.Set;
 
 class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements PersistenceUnitInfo {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceUnitInfoImpl.class);
 
     PersistenceUnitInfoImpl(String persistenceUnitName, DataSource nonJtaDataSource) {
         super(persistenceUnitName, nonJtaDataSource);
@@ -95,12 +100,14 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
 
     @Override
     public void addTransformer(ClassTransformer transformer) {
-        throw new UnsupportedOperationException("addTransformer is not supported");
+        if (transformer != null) {
+            LOGGER.info("Dropwizard EntityManager does not support JPA class transformation.  The " + transformer.getClass().getName() + " class transformer will be ignored.");
+        }
     }
 
     @Override
     public ClassLoader getNewTempClassLoader() {
-        throw new UnsupportedOperationException("getNewTempClassLoader is not supported");
+        return new TemporaryClassLoader(getClassLoader());
     }
 
     /*

@@ -21,7 +21,6 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public class EntityManagerFactoryFactoryTest {
@@ -41,6 +40,7 @@ public class EntityManagerFactoryFactoryTest {
 
     @Before
     public void setUp() throws Exception {
+        when(bundle.name()).thenReturn(getClass().getSimpleName() + "-bundle");
         when(environment.metrics()).thenReturn(metricRegistry);
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
 

@@ -9,7 +9,7 @@ import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.setup.Environment;
 import org.assertj.core.data.MapEntry;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -17,9 +17,6 @@ import org.junit.rules.ExpectedException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.PersistenceException;
-import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,16 +29,17 @@ public class UnitOfWorkAwareProxyFactoryTest {
         BootstrapLogging.bootstrap();
     }
 
-    private EntityManagerFactory entityManagerFactory;
-    private EntityManager sharedEntityManager;
+    private static EntityManagerFactory entityManagerFactory;
+    private static EntityManager sharedEntityManager;
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void setUp() throws Exception {
         final EntityManagerBundle<?> bundle = mock(EntityManagerBundle.class);
         final Environment environment = mock(Environment.class);
+        when(bundle.name()).thenReturn("test-bundle");
         when(environment.lifecycle()).thenReturn(mock(LifecycleEnvironment.class));
         when(environment.metrics()).thenReturn(new MetricRegistry());
 

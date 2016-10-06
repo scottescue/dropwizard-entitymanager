@@ -3,7 +3,7 @@ package com.scottescue.dropwizard.entitymanager;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
+import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.google.common.collect.ImmutableList;
 import com.scottescue.dropwizard.entitymanager.entity.Person;
 import com.scottescue.dropwizard.entitymanager.entity.fake.entities.pckg.FakeEntity1;
@@ -82,7 +82,7 @@ public class EntityManagerBundleTest {
         final ArgumentCaptor<Module> captor = ArgumentCaptor.forClass(Module.class);
         verify(objectMapperFactory).registerModule(captor.capture());
 
-        assertThat(captor.getValue()).isInstanceOf(Hibernate4Module.class);
+        assertThat(captor.getValue()).isInstanceOf(Hibernate5Module.class);
     }
 
     @Test

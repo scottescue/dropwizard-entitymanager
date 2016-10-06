@@ -7,7 +7,7 @@ import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 public class PersistenceUnitConfigTest {
     private final DataSource dataSource = mock(DataSource.class);
@@ -17,7 +17,7 @@ public class PersistenceUnitConfigTest {
     // the tests stay focused on PersistenceUnitConfig, rather than its implementation, a PersistenceUnitConfig typed
     // handle is created.  Test methods exercise the methods exposed through the PersistenceUnitConfig handle, but assert
     // against the implementation handle.
-    private final PersistenceUnitInfoImpl persistenceUnitInfo = new PersistenceUnitInfoImpl("default-test", dataSource);
+    private final PersistenceUnitInfoImpl persistenceUnitInfo = new PersistenceUnitInfoImpl(getClass().getSimpleName(), dataSource);
     private final PersistenceUnitConfig persistenceUnitConfig = persistenceUnitInfo;
 
     @Test
@@ -80,14 +80,11 @@ public class PersistenceUnitConfigTest {
         assertThat(persistenceUnitInfo.getPersistenceXMLSchemaVersion()).isEqualTo("2.1");
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testAddingTransformerIsUnsupported() {
-        persistenceUnitInfo.addTransformer(
-                (loader, className, classBeingRedefined, protectionDomain, classfileBuffer) -> new byte[0]);
-    }
+    @Test
+    public void testTempClassLoaderIsOfCorrectType() throws Exception {
+        ClassLoader tempClassLoader = persistenceUnitInfo.getNewTempClassLoader();
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testGettingNewTempClassLoaderIsUnsupported() {
-        persistenceUnitInfo.getNewTempClassLoader();
+        assertThat(tempClassLoader).isNotNull();
+        assertThat(tempClassLoader).isInstanceOf(TemporaryClassLoader.class);
     }
 }
