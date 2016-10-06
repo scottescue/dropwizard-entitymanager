@@ -1,5 +1,6 @@
 package com.scottescue.dropwizard.entitymanager;
 
+import org.hibernate.jpa.HibernatePersistenceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,17 +11,44 @@ import javax.persistence.spi.PersistenceUnitInfo;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
-class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements PersistenceUnitInfo {
+class PersistenceUnitInfoImpl implements PersistenceUnitConfig, PersistenceUnitInfo {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceUnitInfoImpl.class);
+    private static final String persistenceXmlSchemaVersion = "2.1";
+    private static final DataSource jtaDataSource = null;
+    private static final String persistenceProviderClassName = HibernatePersistenceProvider.class.getName();
+    private static final URL persistenceUnitRootUrl = PersistenceUnitInfoImpl.class.getClassLoader().getResource("");
+    private static final PersistenceUnitTransactionType transactionType = PersistenceUnitTransactionType.RESOURCE_LOCAL;
+
+    @SuppressWarnings("deprecation")
+    private static final Set<String> UNSUPPORTED_ENHANCER_PROPERTIES = new HashSet<String>() {{
+        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_DIRTY_TRACKING );
+        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_LAZY_INITIALIZATION );
+        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_ASSOCIATION_MANAGEMENT );
+        // The USE_CLASS_ENHANCER property is deprecated, but we still need to check whether a value is passed for it
+        add( org.hibernate.jpa.AvailableSettings.USE_CLASS_ENHANCER );
+    }};
+
+    private final String persistenceUnitName;
+    private final DataSource nonJtaDataSource;
+    private final Logger logger;
+    private final Set<String> mappingFileNames = new HashSet<>();
+    private final Set<URL> jarFileUrls = new HashSet<>();
+    private final Set<String> managedClassNames = new HashSet<>();
+    private final Properties properties = new Properties();
+    private boolean excludeUnlistedClasses = true;
+    private SharedCacheMode sharedCacheMode = SharedCacheMode.UNSPECIFIED;
+    private ValidationMode validationMode = ValidationMode.AUTO;
 
     PersistenceUnitInfoImpl(String persistenceUnitName, DataSource nonJtaDataSource) {
-        super(persistenceUnitName, nonJtaDataSource);
+        this(persistenceUnitName, nonJtaDataSource, LoggerFactory.getLogger(PersistenceUnitInfoImpl.class));
+    }
+
+    PersistenceUnitInfoImpl(String persistenceUnitName, DataSource nonJtaDataSource, Logger logger) {
+        this.persistenceUnitName = persistenceUnitName;
+        this.nonJtaDataSource = nonJtaDataSource;
+        this.logger = logger;
     }
 
     @Override
@@ -30,17 +58,17 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
 
     @Override
     public String getPersistenceProviderClassName() {
-        return this.persistenceProviderClassName;
+        return persistenceProviderClassName;
     }
 
     @Override
     public PersistenceUnitTransactionType getTransactionType() {
-        return this.transactionType;
+        return transactionType;
     }
 
     @Override
     public DataSource getJtaDataSource() {
-        return this.jtaDataSource;
+        return jtaDataSource;
     }
 
     @Override
@@ -54,18 +82,35 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
     }
 
     @Override
+    public PersistenceUnitConfig addMappingFileNames(String fileName, String...fileNames) {
+        addAll(this.mappingFileNames, fileName, fileNames);
+        return this;
+    }
+
+    @Override
     public List<URL> getJarFileUrls() {
         return toList(this.jarFileUrls);
     }
 
     @Override
+    public PersistenceUnitConfig addJarFileUrls(URL url, URL... urls) {
+        addAll(this.jarFileUrls, url, urls);
+        return this;
+    }
+
+    @Override
     public URL getPersistenceUnitRootUrl() {
-        return this.persistenceUnitRootUrl;
+        return persistenceUnitRootUrl;
     }
 
     @Override
     public List<String> getManagedClassNames() {
-        return this.managedClassNames;
+        return toList(this.managedClassNames);
+    }
+
+    PersistenceUnitConfig addManagedClassNames(String className, String...classNames) {
+        addAll(this.managedClassNames, className, classNames);
+        return this;
     }
 
     @Override
@@ -74,8 +119,20 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
     }
 
     @Override
+    public PersistenceUnitConfig setExcludeUnlistedClasses(boolean excludeUnlistedClasses) {
+        this.excludeUnlistedClasses = excludeUnlistedClasses;
+        return this;
+    }
+
+    @Override
     public SharedCacheMode getSharedCacheMode() {
         return this.sharedCacheMode;
+    }
+
+    @Override
+    public PersistenceUnitConfig setSharedCacheMode(SharedCacheMode sharedCacheMode) {
+        this.sharedCacheMode = sharedCacheMode;
+        return this;
     }
 
     @Override
@@ -84,13 +141,30 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
     }
 
     @Override
+    public PersistenceUnitConfig setValidationMode(ValidationMode validationMode) {
+        this.validationMode = validationMode;
+        return this;
+    }
+
+    @Override
     public Properties getProperties() {
         return this.properties;
     }
 
     @Override
+    public PersistenceUnitConfig setProperty(String property, String value) {
+        if (UNSUPPORTED_ENHANCER_PROPERTIES.contains(property) && Boolean.valueOf(value)) {
+            logger.warn("Dropwizard EntityManager does not support Hibernate's bytecode enhancer, " +
+                    "however the " + property + " property is set to true.  " +
+                    "Hibernate's bytecode enhancer will be ignored.");
+        }
+        this.properties.setProperty(property, value);
+        return this;
+    }
+
+    @Override
     public String getPersistenceXMLSchemaVersion() {
-        return this.persistenceXmlSchemaVersion;
+        return persistenceXmlSchemaVersion;
     }
 
     @Override
@@ -100,9 +174,8 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
 
     @Override
     public void addTransformer(ClassTransformer transformer) {
-        if (transformer != null) {
-            LOGGER.info("Dropwizard EntityManager does not support JPA class transformation.  The " + transformer.getClass().getName() + " class transformer will be ignored.");
-        }
+        logger.warn("Dropwizard EntityManager does not support JPA class transformation.  " +
+                "The " + transformer.getClass().getName() + " class transformer will be ignored.");
     }
 
     @Override
@@ -110,9 +183,13 @@ class PersistenceUnitInfoImpl extends PersistenceUnitConfig implements Persisten
         return new TemporaryClassLoader(getClassLoader());
     }
 
-    /*
-     * Copy the given Set to a List of the same type
-     */
+
+    @SafeVarargs
+    final private <E> void addAll(Collection<E> collection, E element, E...elements) {
+        collection.add(element);
+        Collections.addAll(collection, elements);
+    }
+
     private <E> List<E> toList(Set<E> set) {
         List<E> list = new ArrayList<>(set.size());
         list.addAll(set);

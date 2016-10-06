@@ -1,87 +1,76 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import org.hibernate.jpa.HibernatePersistenceProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
-import javax.persistence.spi.PersistenceUnitTransactionType;
-import javax.sql.DataSource;
 import java.net.URL;
-import java.util.*;
 
 /**
- * Provides a means to configure {@link javax.persistence.PersistenceUnit} options.
+ * Provides a means to configure the persistence unit before it is created.
  */
-public abstract class PersistenceUnitConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceUnitConfig.class);
+public interface PersistenceUnitConfig {
 
-    @SuppressWarnings("deprecation")
-    private static final Set<String> UNSUPPORTED_ENHANCER_PROPERTIES = new HashSet<String>() {{
-        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_DIRTY_TRACKING );
-        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_LAZY_INITIALIZATION );
-        add( org.hibernate.jpa.AvailableSettings.ENHANCER_ENABLE_ASSOCIATION_MANAGEMENT );
-        // The USE_CLASS_ENHANCER property is deprecated, but we still need to check whether a value is passed for it
-        add( org.hibernate.jpa.AvailableSettings.USE_CLASS_ENHANCER );
-    }};
+    /**
+     * Specifies whether classes in the root of the persistence unit that have not been explicitly listed are to
+     * be included in the set of managed classes.  Classes that have not been explicitly listed are excluded by
+     * default.
+     *
+     * @param excludeUnlistedClasses whether classes in the root of the persistence unit that have not been
+     *                               explicitly listed are to be included in the set of managed classes
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig setExcludeUnlistedClasses(boolean excludeUnlistedClasses);
 
-    protected final String persistenceUnitName;
-    protected final String persistenceProviderClassName = HibernatePersistenceProvider.class.getName();
-    protected final PersistenceUnitTransactionType transactionType = PersistenceUnitTransactionType.RESOURCE_LOCAL;
-    protected final DataSource jtaDataSource = null;
-    protected final DataSource nonJtaDataSource;
-    protected final Set<String> mappingFileNames = new HashSet<>();
-    protected final Set<URL> jarFileUrls = new HashSet<>();
-    protected final URL persistenceUnitRootUrl = getClass().getClassLoader().getResource("");
-    protected final List<String> managedClassNames = new ArrayList<>();
-    protected boolean excludeUnlistedClasses = true;
-    protected SharedCacheMode sharedCacheMode = SharedCacheMode.UNSPECIFIED;
-    protected ValidationMode validationMode = ValidationMode.AUTO;
-    protected final Properties properties = new Properties();
-    protected final String persistenceXmlSchemaVersion = "2.1";
+    /**
+     * Specifies how the provider must use a second-level cache for the persistence unit.
+     * {@link SharedCacheMode#UNSPECIFIED} is used by default.
+     *
+     * @param sharedCacheMode the second-level cache mode that must be used by the provider for the persistence unit
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig setSharedCacheMode(SharedCacheMode sharedCacheMode);
 
-    PersistenceUnitConfig(String persistenceUnitName, DataSource nonJtaDataSource) {
-        this.persistenceUnitName = persistenceUnitName;
-        this.nonJtaDataSource = nonJtaDataSource;
-    }
+    /**
+     * Specifies the validation mode to be used by the persistence provider for the persistence unit.
+     * {@link ValidationMode#AUTO} is used by default.
+     *
+     * @param validationMode the validation mode to be used by the persistence provider for the persistence unit
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig setValidationMode(ValidationMode validationMode);
 
-    public PersistenceUnitConfig setExcludeUnlistedClasses(boolean excludeUnlistedClasses) {
-        this.excludeUnlistedClasses = excludeUnlistedClasses;
-        return this;
-    }
+    /**
+     * Specifies any mapping files that must be loaded to determine the mappings
+     * for the entity classes. The mapping files must be in the standard XML mapping format, be
+     * uniquely named and be resource-loadable from the application classpath. There are no mapping
+     * files used by default.
+     *
+     * @param fileName mapping file name that the persistence provider must load to determine the
+     *                 mappings for the entity classes
+     * @param fileNames list of any additional mapping file names that the persistence provider must
+     *                  load to determine the mappings for the entity classes
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig addMappingFileNames(String fileName, String... fileNames);
 
-    public PersistenceUnitConfig setSharedCacheMode(SharedCacheMode sharedCacheMode) {
-        this.sharedCacheMode = sharedCacheMode;
-        return this;
-    }
+    /**
+     * Specifies URLs for any jar files or exploded jar file directories that the persistence provider must
+     * examine for managed classes of the persistence unit. A URL will either be a file: URL referring to a
+     * jar file or referring to a directory that contains an exploded jar file, or some other URL from which
+     * an InputStream in jar format can be obtained.
+     *
+     * @param url URL object referring to a jar file or directory
+     * @param urls list of any additional URL objects referring to jar files or directories
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig addJarFileUrls(URL url, URL... urls);
 
-    public PersistenceUnitConfig setValidationMode(ValidationMode validationMode) {
-        this.validationMode = validationMode;
-        return this;
-    }
+    /**
+     * Specifies a property value to be used by the persistence provider for the persistence unit.
+     *
+     * @param property property name
+     * @param value the value to be used by the persistence provider for the persistence unit
+     * @return a reference to this object
+     */
+    PersistenceUnitConfig setProperty(String property, String value);
 
-    public PersistenceUnitConfig addMappingFileNames(String fileName, String...fileNames) {
-        addAll(this.mappingFileNames, fileName, fileNames);
-        return this;
-    }
-
-    public PersistenceUnitConfig addManagedClassNames(String className, String...classNames) {
-        addAll(this.managedClassNames, className, classNames);
-        return this;
-    }
-
-    public PersistenceUnitConfig setProperty(String property, String value) {
-        if (UNSUPPORTED_ENHANCER_PROPERTIES.contains(property) && Boolean.valueOf(value)) {
-            LOGGER.warn("Dropwizard EntityManager does not support Hibernate's bytecode enhancer, however the " + property + " property is set to true.  Hibernate's bytecode enhancer will be ignored.");
-        }
-        this.properties.setProperty(property, value);
-        return this;
-    }
-
-    @SafeVarargs
-    final private <E> void addAll(Collection<E> collection, E element, E...elements) {
-        collection.add(element);
-        Collections.addAll(collection, elements);
-    }
 }
