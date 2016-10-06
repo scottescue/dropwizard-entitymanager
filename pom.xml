@@ -226,6 +226,7 @@
                         <configuration>
                             <additionalparam>-Xdoclint:none</additionalparam>
                             <quiet>true</quiet>
+                            <level>protected</level>
                         </configuration>
                         <executions>
                             <execution>
