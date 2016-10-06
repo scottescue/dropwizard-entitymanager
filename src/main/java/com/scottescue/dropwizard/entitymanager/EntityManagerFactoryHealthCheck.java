@@ -10,17 +10,17 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import java.util.concurrent.ExecutorService;
 
-public class EntityManagerFactoryHealthCheck extends HealthCheck {
+class EntityManagerFactoryHealthCheck extends HealthCheck {
     private final EntityManagerFactory entityManagerFactory;
     private final String validationQuery;
     private final TimeBoundHealthCheck timeBoundHealthCheck;
 
-    public EntityManagerFactoryHealthCheck(EntityManagerFactory entityManagerFactory,
+    EntityManagerFactoryHealthCheck(EntityManagerFactory entityManagerFactory,
                                            String validationQuery) {
         this(MoreExecutors.newDirectExecutorService(), Duration.seconds(0), entityManagerFactory, validationQuery);
     }
 
-    public EntityManagerFactoryHealthCheck(ExecutorService executorService,
+    EntityManagerFactoryHealthCheck(ExecutorService executorService,
                                            Duration duration,
                                            EntityManagerFactory entityManagerFactory,
                                            String validationQuery) {

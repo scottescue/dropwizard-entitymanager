@@ -17,7 +17,7 @@ class UnitOfWorkAspect {
 
     final private Map<String, EntityManagerFactory> entityManagerFactories;
 
-    public UnitOfWorkAspect(Map<String, EntityManagerFactory> entityManagerFactories) {
+    UnitOfWorkAspect(Map<String, EntityManagerFactory> entityManagerFactories) {
         this.entityManagerFactories = entityManagerFactories;
     }
 
