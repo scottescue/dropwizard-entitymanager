@@ -15,18 +15,18 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class EntityManagerFactoryFactory {
+class EntityManagerFactoryFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(EntityManagerFactoryFactory.class);
     private static final String DEFAULT_NAME = "hibernate-entitymanager";
 
-    public EntityManagerFactory build(EntityManagerBundle<?> bundle,
+    EntityManagerFactory build(EntityManagerBundle<?> bundle,
                                 Environment environment,
                                 PooledDataSourceFactory dbConfig,
                                 List<Class<?>> entities) {
         return build(bundle, environment, dbConfig, entities, DEFAULT_NAME);
     }
 
-    public EntityManagerFactory build(EntityManagerBundle<?> bundle,
+    EntityManagerFactory build(EntityManagerBundle<?> bundle,
                                 Environment environment,
                                 PooledDataSourceFactory dbConfig,
                                 List<Class<?>> entities,
@@ -35,7 +35,7 @@ public class EntityManagerFactoryFactory {
         return build(bundle, environment, dbConfig, dataSource, entities);
     }
 
-    public EntityManagerFactory build(EntityManagerBundle<?> bundle,
+    EntityManagerFactory build(EntityManagerBundle<?> bundle,
                                 Environment environment,
                                 PooledDataSourceFactory dbConfig,
                                 ManagedDataSource dataSource,

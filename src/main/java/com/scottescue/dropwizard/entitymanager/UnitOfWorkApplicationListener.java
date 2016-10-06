@@ -27,12 +27,12 @@ import java.util.Map;
  * annotation.
  */
 @Provider
-public class UnitOfWorkApplicationListener implements ApplicationEventListener {
+class UnitOfWorkApplicationListener implements ApplicationEventListener {
 
     final private Map<Method, UnitOfWork> methodMap = new HashMap<>();
     final private Map<String, EntityManagerFactory> entityManagerFactories = new HashMap<>();
 
-    public UnitOfWorkApplicationListener() {
+    UnitOfWorkApplicationListener() {
     }
 
     /**
@@ -45,7 +45,7 @@ public class UnitOfWorkApplicationListener implements ApplicationEventListener {
      * @param name a name of a EntityManager bundle
      * @param entityManagerFactory a {@link EntityManagerFactory}
      */
-    public UnitOfWorkApplicationListener(String name, EntityManagerFactory entityManagerFactory) {
+    UnitOfWorkApplicationListener(String name, EntityManagerFactory entityManagerFactory) {
         registerEntityManagerFactory(name, entityManagerFactory);
     }
 

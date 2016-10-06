@@ -15,7 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * When annotating a Jersey resource method, makes a Hibernate EntityManager available
  * to the method's execution context (thread).
  *
- * @see com.scottescue.dropwizard.entitymanager.UnitOfWorkApplicationListener
+ * @see com.scottescue.dropwizard.entitymanager.UnitOfWorkAwareProxyFactory
  */
 @Target(METHOD)
 @Retention(RUNTIME)

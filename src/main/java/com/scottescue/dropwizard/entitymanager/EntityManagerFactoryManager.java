@@ -6,11 +6,11 @@ import io.dropwizard.lifecycle.Managed;
 
 import javax.persistence.EntityManagerFactory;
 
-public class EntityManagerFactoryManager implements Managed {
+class EntityManagerFactoryManager implements Managed {
     private EntityManagerFactory factory;
     private ManagedDataSource dataSource;
 
-    public EntityManagerFactoryManager(EntityManagerFactory factory, ManagedDataSource dataSource) {
+    EntityManagerFactoryManager(EntityManagerFactory factory, ManagedDataSource dataSource) {
         this.factory = factory;
         this.dataSource = dataSource;
     }
