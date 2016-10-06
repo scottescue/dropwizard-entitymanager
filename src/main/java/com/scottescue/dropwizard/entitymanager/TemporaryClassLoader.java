@@ -14,13 +14,13 @@ import java.io.InputStream;
 /**
  * ClassLoader implementation that allows classes to be temporarily loaded and then thrown away.
  */
-public class TemporaryClassLoader extends ClassLoader {
+class TemporaryClassLoader extends ClassLoader {
     private static final String[] PROTECTED_PACKAGES =
             new String[] {"java", "javax", "jdk", "sun", "oracle", "ibm", "IBM"};
 
     private ClassPool classPool = new ClassPool();
 
-    public TemporaryClassLoader(ClassLoader parent) {
+    TemporaryClassLoader(ClassLoader parent) {
         super(parent);
     }
 
