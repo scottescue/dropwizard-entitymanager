@@ -20,24 +20,23 @@ public abstract class ScanningEntityManagerBundle<T extends Configuration> exten
     /**
      * @param path string with package containing JPA entities (classes annotated with {@code @Entity}
      *             annotation) e.g. {@code com.my.application.directory.entities}
+     * @param paths any additional strings with packages containing JPA entities
      */
-    protected ScanningEntityManagerBundle(String path) {
-        this(path,
-                new EntityManagerFactoryFactory(),
-                new SharedEntityManagerFactory());
+    protected ScanningEntityManagerBundle(String path, String... paths) {
+        this(new EntityManagerFactoryFactory(), new SharedEntityManagerFactory(), path, paths);
     }
 
     @VisibleForTesting
-    ScanningEntityManagerBundle(String path,
-                                          EntityManagerFactoryFactory entityManagerFactoryFactory,
-                                          SharedEntityManagerFactory sharedEntityManagerFactory) {
-        super(findEntityClassesFromDirectory(path), entityManagerFactoryFactory, sharedEntityManagerFactory);
+    ScanningEntityManagerBundle(EntityManagerFactoryFactory entityManagerFactoryFactory,
+                                SharedEntityManagerFactory sharedEntityManagerFactory,
+                                String path, String... paths) {
+        super(findEntityClassesFromDirectory(path, paths), entityManagerFactoryFactory, sharedEntityManagerFactory);
     }
 
-    private static ImmutableList<Class<?>> findEntityClassesFromDirectory(String path) {
+    private static ImmutableList<Class<?>> findEntityClassesFromDirectory(String path, String... paths) {
         @SuppressWarnings("unchecked")
         final AnnotationAcceptingListener asl = new AnnotationAcceptingListener(Entity.class);
-        final PackageNamesScanner scanner = new PackageNamesScanner(new String[]{path}, true);
+        final PackageNamesScanner scanner = new PackageNamesScanner(merge(path, paths), true);
 
         while (scanner.hasNext()) {
             final String next = scanner.next();
@@ -54,5 +53,12 @@ public abstract class ScanningEntityManagerBundle<T extends Configuration> exten
         asl.getAnnotatedClasses().forEach(builder::add);
 
         return builder.build();
+    }
+
+    private static String[] merge(String arg, String... args) {
+        String[] combinedPaths = new String[args.length + 1];
+        combinedPaths[0] = arg;
+        System.arraycopy(args, 0, combinedPaths, 1, args.length);
+        return combinedPaths;
     }
 }
