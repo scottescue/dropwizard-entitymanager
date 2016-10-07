@@ -1,6 +1,5 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import io.dropwizard.hibernate.UnitOfWork;
 import org.glassfish.jersey.server.internal.process.MappableException;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.model.ResourceMethod;

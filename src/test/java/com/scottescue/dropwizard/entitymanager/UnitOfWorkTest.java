@@ -1,4 +1,4 @@
-package io.dropwizard.hibernate;
+package com.scottescue.dropwizard.entitymanager;
 
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;

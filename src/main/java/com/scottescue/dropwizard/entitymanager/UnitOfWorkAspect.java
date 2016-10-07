@@ -1,6 +1,5 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import io.dropwizard.hibernate.UnitOfWork;
 import org.hibernate.jpa.HibernateEntityManager;
 
 import javax.persistence.EntityManager;

@@ -1,6 +1,5 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import io.dropwizard.hibernate.UnitOfWork;
 import org.glassfish.jersey.server.ExtendedUriInfo;
 import org.glassfish.jersey.server.model.Resource;
 import org.glassfish.jersey.server.model.ResourceMethod;
