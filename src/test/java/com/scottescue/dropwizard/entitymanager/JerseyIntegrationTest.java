@@ -8,7 +8,6 @@ import com.google.common.collect.ImmutableList;
 import com.scottescue.dropwizard.entitymanager.entity.Person;
 import com.scottescue.dropwizard.entitymanager.mapper.DataExceptionMapper;
 import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.errors.ErrorMessage;

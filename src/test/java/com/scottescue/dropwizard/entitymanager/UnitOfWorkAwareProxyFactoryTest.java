@@ -4,7 +4,6 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.hibernate.UnitOfWork;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.setup.Environment;
