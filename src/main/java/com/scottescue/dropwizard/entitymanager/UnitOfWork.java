@@ -1,6 +1,5 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import com.scottescue.dropwizard.entitymanager.EntityManagerBundle;
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
 
