@@ -96,10 +96,10 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     /**
      * Returns the managed, thread-safe {@link EntityManager} built and configured when this bundle is bootstrapped.
      * This EntityManager can be safely injected into your application code, but must be used with
-     * {@link io.dropwizard.hibernate.UnitOfWork} annotations to declaratively scope persistence context and transaction
+     * {@link UnitOfWork} annotations to declaratively scope persistence context and transaction
      * boundaries.
      *
-     * @see io.dropwizard.hibernate.UnitOfWork
+     * @see com.scottescue.dropwizard.entitymanager.UnitOfWork
      * @see com.scottescue.dropwizard.entitymanager.UnitOfWorkAwareProxyFactory
      *
      * @return the managed, thread-safe EntityManager
