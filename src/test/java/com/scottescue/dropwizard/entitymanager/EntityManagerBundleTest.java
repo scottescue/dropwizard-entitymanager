@@ -140,7 +140,8 @@ public class EntityManagerBundleTest {
     @Test
     @SuppressWarnings("unchecked")
     public void registersACustomNameOfHealthCheckAndDBPoolMetrics() throws Exception {
-        final EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(entities, factory, sharedEntityManagerFactory) {
+        final EntityManagerBundle<Configuration> customBundle = new EntityManagerBundle<Configuration>(entities,
+                factory, sharedEntityManagerFactory) {
             @Override
             public DataSourceFactory getDataSourceFactory(Configuration configuration) {
                 return dbConfig;
@@ -162,5 +163,26 @@ public class EntityManagerBundleTest {
         final ArgumentCaptor<EntityManagerFactoryHealthCheck> captor =
                 ArgumentCaptor.forClass(EntityManagerFactoryHealthCheck.class);
         verify(healthChecks).register(eq("custom-hibernate"), captor.capture());
+    }
+
+    @Test
+    public void serializingLazyLoadedEntitiesConfigChanges() {
+        bundle.setSerializeLazyLoadedEntitiesEnabled(false);
+
+        // Ensure the value IS changed since the bundle has not been initialized
+        assertThat(bundle.isSerializeLazyLoadedEntitiesEnabled()).isFalse();
+    }
+
+    @Test
+    public void ignoresSerializingLazyLoadedEntitiesConfigChangeAfterInit() {
+        ObjectMapper objectMapper = mock(ObjectMapper.class);
+        Bootstrap<?> bootstrap = mock(Bootstrap.class);
+        when(bootstrap.getObjectMapper()).thenReturn(objectMapper);
+
+        bundle.initialize(bootstrap);
+        bundle.setSerializeLazyLoadedEntitiesEnabled(false);
+
+        // Ensure the value IS NOT changed since the bundle was already initialized
+        assertThat(bundle.isSerializeLazyLoadedEntitiesEnabled()).isTrue();
     }
 }

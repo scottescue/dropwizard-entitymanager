@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import java.lang.reflect.Method;
@@ -33,6 +34,7 @@ public class UnitOfWorkApplicationListenerTest {
     private final RequestEvent requestStartEvent = mock(RequestEvent.class);
     private final RequestEvent requestMethodStartEvent = mock(RequestEvent.class);
     private final RequestEvent responseFiltersStartEvent = mock(RequestEvent.class);
+    private final RequestEvent responseFinishedEvent = mock(RequestEvent.class);
     private final RequestEvent requestMethodExceptionEvent = mock(RequestEvent.class);
     private final HibernateEntityManager entityManager = mock(HibernateEntityManager.class);
     private final HibernateEntityManager analyticsEntityManager = mock(HibernateEntityManager.class);
@@ -62,9 +64,11 @@ public class UnitOfWorkApplicationListenerTest {
         when(appEvent.getType()).thenReturn(ApplicationEvent.Type.INITIALIZATION_APP_FINISHED);
         when(requestMethodStartEvent.getType()).thenReturn(RequestEvent.Type.RESOURCE_METHOD_START);
         when(responseFiltersStartEvent.getType()).thenReturn(RequestEvent.Type.RESP_FILTERS_START);
+        when(responseFinishedEvent.getType()).thenReturn(RequestEvent.Type.FINISHED);
         when(requestMethodExceptionEvent.getType()).thenReturn(RequestEvent.Type.ON_EXCEPTION);
         when(requestMethodStartEvent.getUriInfo()).thenReturn(uriInfo);
         when(responseFiltersStartEvent.getUriInfo()).thenReturn(uriInfo);
+        when(responseFinishedEvent.getUriInfo()).thenReturn(uriInfo);
         when(requestMethodExceptionEvent.getUriInfo()).thenReturn(uriInfo);
 
         prepareAppEvent("methodWithDefaultAnnotation");
@@ -90,6 +94,32 @@ public class UnitOfWorkApplicationListenerTest {
         execute();
 
         assertThat(EntityManagerContext.hasBind(entityManagerFactory)).isFalse();
+    }
+
+    @Test
+    public void closesAnyEntityManagerBoundToTheContext() throws Exception {
+        final EntityManager otherEntityManager = mock(EntityManager.class);
+        final EntityManagerFactory otherEntityManagerFactory = mock(EntityManagerFactory.class);
+        when(otherEntityManagerFactory.createEntityManager()).thenReturn(otherEntityManager);
+        when(otherEntityManager.getEntityManagerFactory()).thenReturn(otherEntityManagerFactory);
+
+        EntityManagerContext.bind(entityManager);
+        EntityManagerContext.bind(otherEntityManager);
+
+        doAnswer(invocation -> {
+            assertThat(EntityManagerContext.hasBind(entityManagerFactory)).isTrue();
+            assertThat(EntityManagerContext.hasBind(otherEntityManagerFactory)).isTrue();
+            return RequestEvent.Type.RESOURCE_METHOD_START;
+        }).when(requestMethodStartEvent).getType();
+
+        prepareAppEvent("methodNotAnnotated");
+        execute();
+
+        verify(entityManager).close();
+        verify(otherEntityManager).close();
+
+        assertThat(EntityManagerContext.hasBind(entityManagerFactory)).isFalse();
+        assertThat(EntityManagerContext.hasBind(otherEntityManagerFactory)).isFalse();
     }
 
     @Test
@@ -258,6 +288,7 @@ public class UnitOfWorkApplicationListenerTest {
         RequestEventListener requestListener = listener.onRequest(requestStartEvent);
         requestListener.onEvent(requestMethodStartEvent);
         requestListener.onEvent(responseFiltersStartEvent);
+        requestListener.onEvent(responseFinishedEvent);
     }
 
     private void executeWithException() {
@@ -265,6 +296,8 @@ public class UnitOfWorkApplicationListenerTest {
         RequestEventListener requestListener = listener.onRequest(requestStartEvent);
         requestListener.onEvent(requestMethodStartEvent);
         requestListener.onEvent(requestMethodExceptionEvent);
+        requestListener.onEvent(responseFiltersStartEvent);
+        requestListener.onEvent(responseFinishedEvent);
     }
 
     public static class MockResource implements MockResourceInterface {
@@ -301,17 +334,17 @@ public class UnitOfWorkApplicationListenerTest {
         @UnitOfWork(readOnly = false)
         @Override
         public void bothMethodsAnnotated() {
-
         }
 
         @UnitOfWork("analytics")
         public void methodWithUnitOfWorkOnAnalyticsDatabase() {
-
         }
 
         @UnitOfWork("warehouse")
         public void methodWithUnitOfWorkOnNotRegisteredDatabase() {
+        }
 
+        public void methodNotAnnotated() {
         }
     }
 

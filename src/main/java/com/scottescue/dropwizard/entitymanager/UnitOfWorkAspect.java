@@ -23,7 +23,6 @@ class UnitOfWorkAspect {
     // Context variables
     private UnitOfWork unitOfWork;
     private EntityManager entityManager;
-    private EntityManagerFactory entityManagerFactory;
 
     public void beforeStart(UnitOfWork unitOfWork) {
         if (unitOfWork == null) {
@@ -31,7 +30,7 @@ class UnitOfWorkAspect {
         }
         this.unitOfWork = unitOfWork;
 
-        entityManagerFactory = entityManagerFactories.get(unitOfWork.value());
+        EntityManagerFactory entityManagerFactory = entityManagerFactories.get(unitOfWork.value());
         if (entityManagerFactory == null) {
             // If the user didn't specify the name of a entityManager factory,
             // and we have only one registered, we can assume that it's the right one.
@@ -47,9 +46,7 @@ class UnitOfWorkAspect {
             EntityManagerContext.bind(entityManager);
             beginTransaction();
         } catch (Throwable th) {
-            entityManager.close();
             entityManager = null;
-            EntityManagerContext.unbind(entityManagerFactory);
             throw th;
         }
     }
@@ -64,12 +61,9 @@ class UnitOfWorkAspect {
         } catch (Exception e) {
             rollbackTransaction();
             throw e;
-        } finally {
-            entityManager.close();
-            entityManager = null;
-            EntityManagerContext.unbind(entityManagerFactory);
         }
-
+        // The entityManager should not be closed to let lazy loading work when serializing a response to the client.
+        // If the response is successfully serialized, then the entityManager will be closed by the `onFinish` method
     }
 
     public void onError() {
@@ -80,9 +74,7 @@ class UnitOfWorkAspect {
         try {
             rollbackTransaction();
         } finally {
-            entityManager.close();
             entityManager = null;
-            EntityManagerContext.unbind(entityManagerFactory);
         }
     }
 

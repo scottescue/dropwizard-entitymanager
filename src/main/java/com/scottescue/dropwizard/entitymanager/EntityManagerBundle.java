@@ -27,6 +27,8 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     private EntityManagerFactory entityManagerFactory;
     private EntityManagerContext entityManagerContext;
     private EntityManager sharedEntityManager;
+    private boolean serializeLazyLoadedEntitiesEnabled = true;
+    private boolean initialized = false;
 
     private final ImmutableList<Class<?>> entities;
     private final EntityManagerFactoryFactory entityManagerFactoryFactory;
@@ -64,20 +66,12 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
                         dbConfig.getValidationQuery()));
     }
 
-    private UnitOfWorkApplicationListener registerUnitOfWorkListerIfAbsent(Environment environment) {
-        for (Object singleton : environment.jersey().getResourceConfig().getSingletons()) {
-            if (singleton instanceof UnitOfWorkApplicationListener) {
-                return (UnitOfWorkApplicationListener) singleton;
-            }
-        }
-        final UnitOfWorkApplicationListener listener = new UnitOfWorkApplicationListener();
-        environment.jersey().register(listener);
-        return listener;
-    }
-
     @Override
     public final void initialize(Bootstrap<?> bootstrap) {
-        bootstrap.getObjectMapper().registerModule(createHibernate5Module());
+        Hibernate5Module module = createHibernate5Module();
+        configure(module);
+        bootstrap.getObjectMapper().registerModule(module);
+        initialized = true;
     }
 
     /**
@@ -109,10 +103,33 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
     }
 
     /**
-     * Override to configure the {@link Hibernate5Module}.
+     * Returns a boolean value indicating whether or not serializing lazy loaded entity associations is enabled.
+     * Serializing Lazy loaded entity associations is enabled by default.
+     *
+     * @return the value indicating whether serializing lazy loaded entity associations is enabled or not
      */
-    protected Hibernate5Module createHibernate5Module() {
-        return new Hibernate5Module();
+    public boolean isSerializeLazyLoadedEntitiesEnabled() {
+        return serializeLazyLoadedEntitiesEnabled;
+    }
+
+    /**
+     * Enables or disables serializing lazy loaded entity associations as determined by the given value.
+     *
+     * <br/><br/><i><strong>Note: </strong>This method should be called before the EntityManagerBundle is added
+     * to the application's {@link Bootstrap}, which initializes the bundle.  Once the bundle is initialized,
+     * any changes to the lazy loading property are ignored.</i>
+     *
+     * @param serializeLazyLoadedEntitiesEnabled the value indicating whether lazy loading is enabled or not
+     */
+    public void setSerializeLazyLoadedEntitiesEnabled(boolean serializeLazyLoadedEntitiesEnabled) {
+        // If the module is already initialized/bootstrapped there's no point in updating this property,
+        // an ObjectMapper has already been created and updating the property value could make the property
+        // out-of-sync with how the ObjectMapper is configured
+        if (initialized) {
+            return;
+        }
+        this.serializeLazyLoadedEntitiesEnabled = serializeLazyLoadedEntitiesEnabled;
+
     }
 
     /**
@@ -121,6 +138,14 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
      */
     protected String name() {
         return DEFAULT_NAME;
+    }
+
+    /**
+     * Override to configure Jackson's {@link Hibernate5Module}.
+     *
+     * @param module the Hibernate5Module object
+     */
+    protected void configure(Hibernate5Module module) {
     }
 
     /**
@@ -137,5 +162,24 @@ public abstract class EntityManagerBundle<T extends Configuration> implements Co
 
     EntityManagerContext getEntityManagerContext() {
         return this.entityManagerContext;
+    }
+
+    private UnitOfWorkApplicationListener registerUnitOfWorkListerIfAbsent(Environment environment) {
+        for (Object singleton : environment.jersey().getResourceConfig().getSingletons()) {
+            if (singleton instanceof UnitOfWorkApplicationListener) {
+                return (UnitOfWorkApplicationListener) singleton;
+            }
+        }
+        final UnitOfWorkApplicationListener listener = new UnitOfWorkApplicationListener();
+        environment.jersey().register(listener);
+        return listener;
+    }
+
+    private Hibernate5Module createHibernate5Module() {
+        Hibernate5Module module = new Hibernate5Module();
+        if (serializeLazyLoadedEntitiesEnabled) {
+            module.enable(Hibernate5Module.Feature.FORCE_LAZY_LOADING);
+        }
+        return module;
     }
 }

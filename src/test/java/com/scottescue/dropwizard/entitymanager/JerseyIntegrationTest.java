@@ -1,54 +1,56 @@
 package com.scottescue.dropwizard.entitymanager;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.scottescue.dropwizard.entitymanager.entity.Person;
-import com.scottescue.dropwizard.entitymanager.mapper.DataExceptionMapper;
-import io.dropwizard.db.DataSourceFactory;
-import io.dropwizard.jackson.Jackson;
-import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.errors.ErrorMessage;
-import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
-import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
-import io.dropwizard.logging.BootstrapLogging;
 import io.dropwizard.setup.Environment;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
+import javax.persistence.PersistenceException;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Application;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.ext.ExceptionMapper;
+import java.sql.SQLDataException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-public class JerseyIntegrationTest extends JerseyTest {
-    static {
-        BootstrapLogging.bootstrap();
-        // Prevent expected Hibernate SQL Exceptions from cluttering unit test logs
-        Logger logger = (Logger)LoggerFactory.getLogger(org.hibernate.engine.jdbc.spi.SqlExceptionHelper.class);
-        logger.setLevel(Level.OFF);
+public class JerseyIntegrationTest extends AbstractIntegrationTest {
+    public static class TestApplication extends AbstractTestApplication {
+        @Override
+        protected ImmutableList<Class<?>> supportedEntities() {
+            return ImmutableList.of(Person.class);
+        }
+
+        @Override
+        public void onRun(TestConfiguration configuration, Environment environment) throws Exception {
+            final EntityManager sharedEntityManager = entityManagerBundle.getSharedEntityManager();
+            environment.jersey().register(new PersonResource(new PersonService(sharedEntityManager)));
+            environment.jersey().register(new DataExceptionMapper());
+        }
+
+        @Override
+        protected void onInitDatabase(EntityManager entityManager) {
+            entityManager.createNativeQuery("DROP TABLE people IF EXISTS").executeUpdate();
+            entityManager.createNativeQuery(
+                    "CREATE TABLE people (name varchar(100) primary key, email varchar(16), birthday timestamp with time zone)")
+                    .executeUpdate();
+            entityManager.createNativeQuery(
+                    "INSERT INTO people VALUES ('Coda', 'coda@example.com', '1979-01-02 00:22:00+0:00')")
+                    .executeUpdate();
+        }
     }
 
     public static class PersonService {
-        private EntityManager entityManager;
+        private final EntityManager entityManager;
         public PersonService(EntityManager entityManager) {
             this.entityManager = entityManager;
         }
@@ -85,82 +87,31 @@ public class JerseyIntegrationTest extends JerseyTest {
         }
     }
 
-    private EntityManagerFactory entityManagerFactory;
+    public static class DataExceptionMapper implements ExceptionMapper<PersistenceException> {
+        @Override
+        public Response toResponse(PersistenceException e) {
+            @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+            SQLDataException sqlException = unwrapThrowable(SQLDataException.class, e);
 
-    @Override
-    @After
-    public void tearDown() throws Exception {
-        super.tearDown();
+            String message = (sqlException != null && sqlException.getMessage().contains("EMAIL"))
+                    ? "Wrong email"
+                    : "Wrong input";
 
-        if (entityManagerFactory != null) {
-            entityManagerFactory.close();
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorMessage(Response.Status.BAD_REQUEST.getStatusCode(), message))
+                    .build();
         }
     }
 
-    @Override
-    protected Application configure() {
-        forceSet(TestProperties.CONTAINER_PORT, "0");
-
-        final MetricRegistry metricRegistry = new MetricRegistry();
-        final EntityManagerFactoryFactory factory = new EntityManagerFactoryFactory();
-        final DataSourceFactory dbConfig = new DataSourceFactory();
-        final EntityManagerBundle<?> bundle = mock(EntityManagerBundle.class);
-        final Environment environment = mock(Environment.class);
-        final LifecycleEnvironment lifecycleEnvironment = mock(LifecycleEnvironment.class);
-        when(bundle.name()).thenReturn(getClass().getSimpleName() + "-bundle");
-        when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
-        when(environment.metrics()).thenReturn(metricRegistry);
-
-        dbConfig.setUrl("jdbc:hsqldb:mem:DbTest-" + System.nanoTime()+"?hsqldb.translate_dti_types=false");
-        dbConfig.setUser("sa");
-        dbConfig.setDriverClass("org.hsqldb.jdbcDriver");
-        dbConfig.setValidationQuery("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
-
-        this.entityManagerFactory = factory.build(bundle,
-                environment,
-                dbConfig,
-                ImmutableList.<Class<?>>of(Person.class));
-
-        final EntityManager entityManager = entityManagerFactory.createEntityManager();
-        try {
-            EntityTransaction tx = entityManager.getTransaction();
-            tx.begin();
-
-            entityManager.createNativeQuery("DROP TABLE people IF EXISTS").executeUpdate();
-            entityManager.createNativeQuery(
-                    "CREATE TABLE people (name varchar(100) primary key, email varchar(16), birthday timestamp with time zone)")
-                    .executeUpdate();
-            entityManager.createNativeQuery(
-                    "INSERT INTO people VALUES ('Coda', 'coda@example.com', '1979-01-02 00:22:00+0:00')")
-                    .executeUpdate();
-
-            tx.commit();
-        } finally {
-            entityManager.close();
-        }
-
-        final SharedEntityManagerFactory sharedEntityManagerFactory = new SharedEntityManagerFactory();
-        final EntityManagerContext context = new EntityManagerContext(this.entityManagerFactory);
-        final EntityManager sharedEntityManager = sharedEntityManagerFactory.build(context);
-
-        final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
-        config.register(new UnitOfWorkApplicationListener("hr-db", entityManagerFactory));
-        config.register(new PersonResource(new PersonService(sharedEntityManager)));
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
-
-        config.register(new DataExceptionMapper());
-
-        return config;
+    @Before
+    public void setup() {
+        setup(TestApplication.class);
     }
 
-    @Override
-    protected void configureClient(ClientConfig config) {
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
-    }
 
     @Test
     public void findsExistingData() throws Exception {
-        final Person coda = target("/people/Coda").request(MediaType.APPLICATION_JSON).get(Person.class);
+        final Person coda = client.target(getUrl("/people/Coda")).request(MediaType.APPLICATION_JSON).get(Person.class);
 
         assertThat(coda.getName())
                 .isEqualTo("Coda");
@@ -175,7 +126,7 @@ public class JerseyIntegrationTest extends JerseyTest {
     @Test
     public void doesNotFindMissingData() throws Exception {
         try {
-            target("/people/Poof").request(MediaType.APPLICATION_JSON)
+            client.target(getUrl("/people/Poof")).request(MediaType.APPLICATION_JSON)
                     .get(Person.class);
             failBecauseExceptionWasNotThrown(WebApplicationException.class);
         } catch (WebApplicationException e) {
@@ -191,9 +142,9 @@ public class JerseyIntegrationTest extends JerseyTest {
         person.setEmail("hank@example.com");
         person.setBirthday(new DateTime(1971, 3, 14, 19, 12, DateTimeZone.UTC));
 
-        target("/people/Hank").request().put(Entity.entity(person, MediaType.APPLICATION_JSON));
+        client.target(getUrl("/people/Hank")).request().put(Entity.entity(person, MediaType.APPLICATION_JSON));
 
-        final Person hank = target("/people/Hank")
+        final Person hank = client.target(getUrl("/people/Hank"))
                 .request(MediaType.APPLICATION_JSON)
                 .get(Person.class);
 
@@ -209,16 +160,16 @@ public class JerseyIntegrationTest extends JerseyTest {
 
     @Test
     public void testSqlExceptionIsHandled() throws Exception {
-            final Person person = new Person();
-            person.setName("Jeff");
-            person.setEmail("jeff.hammersmith@targetprocessinc.com");
-            person.setBirthday(new DateTime(1984, 2, 11, 0, 0, DateTimeZone.UTC));
+        final Person person = new Person();
+        person.setName("Jeff");
+        person.setEmail("jeff.hammersmith@targetprocessinc.com");
+        person.setBirthday(new DateTime(1984, 2, 11, 0, 0, DateTimeZone.UTC));
 
-            final Response response = target("/people/Jeff").request().
-                    put(Entity.entity(person, MediaType.APPLICATION_JSON));
+        final Response response = client.target(getUrl("/people/Jeff")).request().
+                put(Entity.entity(person, MediaType.APPLICATION_JSON));
 
-            assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
-            assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
-            assertThat(response.readEntity(ErrorMessage.class).getMessage()).isEqualTo("Wrong email");
+        assertThat(response.getStatusInfo()).isEqualTo(Response.Status.BAD_REQUEST);
+        assertThat(response.getHeaderString(HttpHeaders.CONTENT_TYPE)).isEqualTo(MediaType.APPLICATION_JSON);
+        assertThat(response.readEntity(ErrorMessage.class).getMessage()).isEqualTo("Wrong email");
     }
 }
