@@ -6,23 +6,24 @@
 {% endcomment %}
 
 {% assign level = header | split: ' ' | first | remove: '<h' | to_integer %}
+{% if level > 0 %}
+    {% assign id_tokens = header | split: '"' %}
+    {% assign id = id_tokens[1] %}
 
-{% assign id_tokens = header | split: '"' %}
-{% assign id = id_tokens[1] %}
+    {% assign header_text_tokens = header | split: '>' %}
+    {% assign header_text = header_text_tokens[1] %}
 
-{% assign header_text_tokens = header | split: '>' %}
-{% assign header_text = header_text_tokens[1] %}
-
-{% if last_level %}
-    </li>
-    {% if level > last_level %}
-        <ul class="nav nav-pills nav-stacked">
-    {% elsif level < last_level %}
-        </ul>
+    {% if last_level %}
+        </li>
+        {% if level > last_level %}
+            <ul class="nav nav-pills nav-stacked">
+        {% elsif level < last_level %}
+            </ul>
+        {% endif %}
     {% endif %}
+
+    <li>
+        <a href="#{{ id }}">{{ header_text }}</a>
+
+    {% assign last_level = level %}
 {% endif %}
-
-<li>
-    <a href="#{{ id }}">{{ header_text }}</a>
-
-{% assign last_level = level %}

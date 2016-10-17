@@ -1,0 +1,18 @@
+---
+layout: version_page
+summary: Latest release compatible with Dropwizard 1.0.0
+release_notes:
+- Updated Dropwizard dependency to version 1.0.0
+- Upgraded to Hibernate 5.1.0.FINAL
+- Added the ability to serialize lazy loaded entity associations. _Lazy loaded entity associations are now serialized by default_
+- Added the ability to scan multiple packages for annotated entities
+- Distilled Javadoc down to public and protected classes/methods that developers will actually use
+-
+  title: Added several breaking API changes&#58;
+  notes:
+  - Moved @UnitOfWork to `com.scottescue.dropwizard.entitymanager` package
+  - Refactored `PersistenceUnitConfig` making it an interface with a builder style API
+  - Replaced `EntityManagerBundle#createHibernate5Module` with `EntityManagerBundle#configure(Hibernate5Module)`
+  - Restricted class and method visibility for some framework classes that were too visible
+
+---

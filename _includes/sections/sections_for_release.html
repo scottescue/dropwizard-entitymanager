@@ -1,11 +1,19 @@
 {% for section in site.sections %}
-    {% unless section.versions %}
-        {% assign is_versions_empty = true %}
+    {% unless section.since %}
+        {% assign is_since_empty = true %}
     {% else %}
-        {% assign is_versions_empty = false %}
+        {% assign is_since_empty = false %}
     {% endunless %}
 
-    {% if is_versions_empty or section.versions contains release_version %}
-        {% include {{ include.closure }} %}
+    {% unless section.until %}
+        {% assign is_until_empty = true %}
+    {% else %}
+        {% assign is_until_empty = false %}
+    {% endunless %}
+
+    {% if is_since_empty or section.since <= release_version %}
+        {% if is_until_empty or section.until >= release_version %}
+            {% include {{ include.closure }} %}
+        {% endif %}
     {% endif %}
 {% endfor %}

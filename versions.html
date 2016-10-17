@@ -38,7 +38,18 @@ layout: page
             {% if version_page.release_notes %}
                 <ul class="list-group">
                     {% for note in version_page.release_notes %}
-                        <li class="list-group-item"><span class="fa fa-arrow-right"></span> {{ note }}</li>
+                        {% unless note.title %}
+                            <li class="list-group-item"><span class="fa fa-circle"></span> {{ note }}</li>
+                        {% else %}
+                            <li class="list-group-item"><span class="fa fa-circle"></span> {{ note.title }}</li>
+                            {% if note.notes %}
+                                <ul class="list-group">
+                                {% for subnote in note.notes %}
+                                    <li class="list-group-item"><span class="fa fa-circle"></span> {{ subnote }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endunless %}
                     {% endfor %}
                 </ul>
             {% endif %}
