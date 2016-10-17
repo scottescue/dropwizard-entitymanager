@@ -6,7 +6,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Represents the notion of contextual {@link EntityManager} instances managed by
@@ -78,6 +80,24 @@ class EntityManagerContext {
             doCleanup();
         }
         return existing;
+    }
+
+    /**
+     * Unbinds all EntityManagers, regardless of EntityManagerFactory, currently associated with the context.
+     *
+     * @param function the function to apply to each EntityManager removed
+     */
+    static void unBindAll(Consumer<EntityManager> function) {
+        final Map<EntityManagerFactory,EntityManager> entityManagerMap = entityManagerMap(false);
+        if ( entityManagerMap != null ) {
+            Iterator<EntityManager> iterator = entityManagerMap.values().iterator();
+            while (iterator.hasNext()) {
+                EntityManager entityManager = iterator.next();
+                function.accept(entityManager);
+                iterator.remove();
+            }
+            doCleanup();
+        }
     }
 
     @VisibleForTesting

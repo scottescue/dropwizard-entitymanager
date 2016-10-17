@@ -8,6 +8,7 @@ import org.glassfish.jersey.server.monitoring.ApplicationEventListener;
 import org.glassfish.jersey.server.monitoring.RequestEvent;
 import org.glassfish.jersey.server.monitoring.RequestEventListener;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
@@ -70,18 +71,21 @@ class UnitOfWorkApplicationListener implements ApplicationEventListener {
 
         @Override
         public void onEvent(RequestEvent event) {
-            if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
+            final RequestEvent.Type eventType = event.getType();
+            if (eventType == RequestEvent.Type.RESOURCE_METHOD_START) {
                 UnitOfWork unitOfWork = methodMap.get(event.getUriInfo()
                         .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
                 unitOfWorkAspect.beforeStart(unitOfWork);
-            } else if (event.getType() == RequestEvent.Type.RESP_FILTERS_START) {
+            } else if (eventType == RequestEvent.Type.RESP_FILTERS_START) {
                 try {
                     unitOfWorkAspect.afterEnd();
                 } catch (Exception e) {
                     throw new MappableException(e);
                 }
-            } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
+            } else if (eventType == RequestEvent.Type.ON_EXCEPTION) {
                 unitOfWorkAspect.onError();
+            } else if (eventType == RequestEvent.Type.FINISHED) {
+                EntityManagerContext.unBindAll(EntityManager::close);
             }
         }
     }
