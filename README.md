@@ -20,7 +20,7 @@ See [scottescue.com/dropwizard-entitymanager](http://www.scottescue.com/dropwiza
 Support
 -------
 
-Please file bug reports and feature requests in [GitHub issues](https://github.com/scottescue/dropwizard-entitymanager/issues).
+This repository is preserved as an unmaintained portfolio/reference project. I am not accepting bug reports, feature requests, dependency updates, or production-support requests.
 
 
 Credits
