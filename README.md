@@ -3,8 +3,13 @@ Dropwizard EntityManager
 [![Build Status](https://travis-ci.org/scottescue/dropwizard-entitymanager.svg?branch=master)](https://travis-ci.org/scottescue/dropwizard-entitymanager)
 [![Coverage Status](https://coveralls.io/repos/scottescue/dropwizard-entitymanager/badge.svg?branch=master&service=github)](https://coveralls.io/github/scottescue/dropwizard-entitymanager?branch=master)
 
-An add-on module providing managed access to a Hibernate JPA `EntityManagerFactory` and a shareable, thread-safe 
-`EntityManager` that works with Dropwizard Hibernate's `@UnitOfWork` annotation.
+> **Status:** Unmaintained portfolio/reference project.
+
+Dropwizard EntityManager is an add-on module created for older Dropwizard applications that used JPA `EntityManager` APIs while still wanting managed lifecycle behavior compatible with Dropwizard Hibernate and `@UnitOfWork`.
+
+This repository is preserved as a portfolio artifact and reference implementation. I do not actively maintain it, review dependency updates, or provide support for production use.
+
+Modern Dropwizard applications should start with the official `dropwizard-hibernate` module and current Dropwizard/Hibernate documentation before considering this approach.
 
 
 Getting Started
