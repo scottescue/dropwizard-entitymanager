@@ -9,6 +9,7 @@
 title: Dropwizard EntityManager
 tagline: Easy JPA for Dropwizard!
 email: scott.escue@southernfiredsoftware.com
+portfolio_url: "https://scottescue.com/projects/dropwizard-entitymanager/"
 description: > # this means to ignore newlines until "baseurl:"
  An add-on module for the popular Dropwizard RESTful web service framework
  that provides managed access to Hibernate JPA, along with support for @UnitOfWork
